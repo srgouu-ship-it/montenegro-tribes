@@ -5,802 +5,707 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Plemena Crne Gore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --crimson: #B01020;
-      --gold:    #C9A227;
-      --gold2:   #E8C84A;
-      --cream:   #F0E5CC;
-      --dark:    #0B0705;
-      --glass:   rgba(10,6,4,0.88);
-      --muted:   #7A6858;
+      --crimson:#B01020; --gold:#C9A227; --gold2:#E8C84A;
+      --cream:#F0E5CC; --dark:#0B0705; --glass:rgba(10,6,4,0.88); --muted:#7A6858;
     }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);}
 
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    html, body { width:100%; height:100%; overflow:hidden; background:var(--dark); }
+    #c{position:fixed;inset:0;display:block;z-index:0;}
 
-    /* ── CANVAS ── */
-    canvas { position:fixed; inset:0; display:block; }
-
-    /* ── TOP HUD ── */
-    #hud {
-      position: fixed; top:0; left:0; right:0; z-index:50;
-      padding: 18px 24px;
-      display: flex; align-items:center; justify-content:space-between;
-      background: linear-gradient(to bottom, rgba(11,7,5,0.95) 60%, transparent);
-      pointer-events: none;
+    #hud{
+      position:fixed;top:0;left:0;right:0;z-index:50;
+      padding:16px 24px;display:flex;align-items:center;justify-content:space-between;
+      background:linear-gradient(to bottom,rgba(11,7,5,.96) 60%,transparent);
+      pointer-events:none;
     }
+    .hud-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--gold);}
+    .hud-title span{color:var(--crimson);}
+    .hud-hint{font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);transition:opacity .4s;}
 
-    .hud-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem; font-weight:900;
-      letter-spacing: 3px; text-transform: uppercase;
-      color: var(--gold);
+    #filters{
+      position:fixed;top:54px;left:50%;transform:translateX(-50%);
+      z-index:50;display:flex;gap:6px;pointer-events:auto;
     }
-    .hud-title span { color: var(--crimson); }
+    .fp{
+      background:rgba(10,6,4,.82);border:1px solid rgba(201,162,39,.22);
+      color:var(--muted);padding:5px 16px;border-radius:999px;
+      font-size:.68rem;letter-spacing:1.2px;text-transform:uppercase;
+      cursor:pointer;transition:all .2s;white-space:nowrap;
+    }
+    .fp:hover,.fp.on{border-color:var(--gold);color:var(--gold);background:rgba(201,162,39,.1);}
 
-    .hud-hint {
-      font-size: 0.65rem; letter-spacing:1.5px; text-transform:uppercase;
-      color: var(--muted);
-      transition: opacity 0.4s;
+    .tlabel{
+      position:fixed;transform:translate(-50%,-100%);
+      text-align:center;pointer-events:auto;cursor:pointer;
+      transition:opacity .3s;z-index:30;
     }
+    .tdot{width:8px;height:8px;border-radius:50%;margin:0 auto 3px;box-shadow:0 0 8px currentColor;transition:transform .2s;}
+    .tname{font-size:.55rem;letter-spacing:1.2px;text-transform:uppercase;font-weight:500;opacity:.75;white-space:nowrap;}
+    .tlabel:hover .tdot{transform:scale(1.8);}
+    .tlabel:hover .tname{opacity:1;}
 
-    /* ── FILTER BAR ── */
-    #filters {
-      position: fixed; top: 56px; left:50%; transform:translateX(-50%);
-      z-index:50;
-      display: flex; gap:6px;
-      pointer-events: auto;
+    #sheet{
+      position:fixed;bottom:0;left:0;right:0;z-index:60;
+      height:58vh;transform:translateY(100%);
+      transition:transform .5s cubic-bezier(.4,0,.2,1);
+      display:flex;flex-direction:column;
+      background:var(--glass);backdrop-filter:blur(24px);
+      border-top:1px solid rgba(201,162,39,.2);border-radius:20px 20px 0 0;
     }
+    #sheet.open{transform:translateY(0);}
 
-    .fpill {
-      background: rgba(10,6,4,0.82);
-      border: 1px solid rgba(201,162,39,0.22);
-      color: var(--muted);
-      padding: 5px 16px; border-radius:999px;
-      font-size: 0.68rem; letter-spacing:1.2px; text-transform:uppercase;
-      cursor: pointer; transition: all 0.2s; white-space:nowrap;
+    .sstrip{
+      height:5px;flex-shrink:0;border-radius:20px 20px 0 0;
+      background:repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 12px,var(--crimson) 12px,var(--crimson) 24px,var(--gold) 24px,var(--gold) 36px,rgba(201,162,39,.1) 36px,rgba(201,162,39,.1) 48px);
     }
-    .fpill:hover, .fpill.on { border-color:var(--gold); color:var(--gold); background:rgba(201,162,39,0.1); }
+    .shead{
+      flex-shrink:0;padding:14px 28px 10px;
+      display:flex;align-items:flex-start;justify-content:space-between;
+      border-bottom:1px solid rgba(201,162,39,.1);
+    }
+    .sreg{font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:4px;}
+    .stitle{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#fff;line-height:1;}
+    .smeta{font-size:.72rem;color:var(--muted);margin-top:4px;}
+    #sc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);
+        width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:.75rem;flex-shrink:0;margin-left:12px;transition:all .15s;}
+    #sc:hover{color:#fff;}
 
-    /* ── TRIBE HTML LABELS ── */
-    .tlabel {
-      position: fixed; transform: translate(-50%,-100%);
-      text-align:center; pointer-events:auto; cursor:pointer;
-      transition: opacity 0.3s;
-      z-index: 30;
+    .sbody{
+      flex:1;overflow-y:auto;padding:0 28px 40px;
+      display:flex;flex-direction:column;gap:0;scroll-behavior:smooth;
     }
-    .tlabel .tdot {
-      width:8px; height:8px; border-radius:50%;
-      margin:0 auto 3px;
-      box-shadow: 0 0 8px currentColor;
-      transition: transform 0.2s;
-    }
-    .tlabel .tname {
-      font-size:0.55rem; letter-spacing:1.2px; text-transform:uppercase;
-      font-weight:500; opacity:0.75; white-space:nowrap;
-    }
-    .tlabel:hover .tdot { transform:scale(1.8); }
-    .tlabel:hover .tname { opacity:1; }
+    .sbody::-webkit-scrollbar{width:3px;}
+    .sbody::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
 
-    /* ── BOTTOM SHEET ── */
-    #sheet {
-      position: fixed; bottom:0; left:0; right:0; z-index:60;
-      height: 58vh;
-      transform: translateY(100%);
-      transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
-      display: flex; flex-direction:column;
-      background: var(--glass);
-      backdrop-filter: blur(24px);
-      border-top: 1px solid rgba(201,162,39,0.2);
-      border-radius: 20px 20px 0 0;
-    }
-    #sheet.open { transform: translateY(0); }
+    .ssum{padding:16px 0;font-size:.88rem;line-height:1.75;color:#8a7a6a;border-bottom:1px solid rgba(255,255,255,.05);}
+    .squote{margin:16px 0;border-left:3px solid var(--crimson);padding:10px 16px;background:rgba(176,16,32,.06);border-radius:0 8px 8px 0;font-style:italic;color:#8a7a6a;font-size:.85rem;line-height:1.6;}
 
-    /* Decorative top strip */
-    .sheet-strip {
-      height:5px; flex-shrink:0;
-      border-radius:20px 20px 0 0;
-      background: repeating-linear-gradient(
-        90deg,
-        var(--gold) 0,var(--gold) 12px,
-        var(--crimson) 12px,var(--crimson) 24px,
-        var(--gold) 24px,var(--gold) 36px,
-        rgba(201,162,39,0.1) 36px,rgba(201,162,39,0.1) 48px
-      );
+    .pcard{
+      padding:20px 0;border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;gap:16px;align-items:flex-start;
+      transition:opacity .4s,border-left .3s;
+      opacity:.45;border-left:3px solid transparent;padding-left:12px;
     }
+    .pcard.focused{opacity:1;border-left-color:var(--gold);}
+    .pico{font-size:1.8rem;flex-shrink:0;margin-top:2px;filter:drop-shadow(0 0 8px rgba(201,162,39,.4));}
+    .pname{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:4px;}
+    .pdesc{font-size:.82rem;line-height:1.65;color:#7a6a5a;}
+    .pcoords{display:inline-block;margin-top:6px;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);opacity:.6;}
 
-    /* Sheet header */
-    .sheet-head {
-      flex-shrink:0;
-      padding: 16px 28px 12px;
-      display:flex; align-items:flex-start; justify-content:space-between;
-      border-bottom: 1px solid rgba(201,162,39,0.1);
+    #backbtn{
+      position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:40;
+      background:rgba(10,6,4,.85);border:1px solid rgba(201,162,39,.3);
+      color:var(--gold);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;
+      padding:8px 20px;border-radius:999px;cursor:pointer;
+      opacity:0;pointer-events:none;transition:opacity .3s;
     }
+    #backbtn.vis{opacity:1;pointer-events:auto;}
 
-    .sheet-region {
-      font-size:0.6rem; letter-spacing:2.5px; text-transform:uppercase;
-      margin-bottom:4px;
-    }
+    #labels{position:fixed;inset:0;z-index:30;pointer-events:none;}
+    #labels .tlabel{pointer-events:auto;}
 
-    .sheet-title {
-      font-family:'Playfair Display', serif;
-      font-size:1.8rem; font-weight:900; color:#fff; line-height:1;
-    }
-
-    .sheet-meta {
-      font-size:0.72rem; color:var(--muted); margin-top:4px;
-    }
-
-    #sheet-close {
-      background: rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.1);
-      color:var(--muted); width:30px;height:30px;
-      border-radius:8px; cursor:pointer; font-size:0.75rem;
-      flex-shrink:0; margin-left:12px;
-      transition: all 0.15s;
-    }
-    #sheet-close:hover { color:#fff; }
-
-    /* Sheet body — scrollable */
-    .sheet-body {
-      flex:1; overflow-y:auto;
-      padding:0 28px 40px;
-      display:flex; flex-direction:column; gap:0;
-      scroll-behavior:smooth;
-    }
-    .sheet-body::-webkit-scrollbar { width:3px; }
-    .sheet-body::-webkit-scrollbar-thumb { background:var(--muted); border-radius:2px; }
-
-    /* Summary */
-    .sheet-summary {
-      padding:16px 0;
-      font-size:0.88rem; line-height:1.75; color:#8a7a6a;
-      border-bottom:1px solid rgba(255,255,255,0.05);
-    }
-
-    /* POI cards */
-    .poi-card {
-      padding:20px 0;
-      border-bottom:1px solid rgba(255,255,255,0.05);
-      display:flex; gap:16px; align-items:flex-start;
-      transition: opacity 0.4s;
-      opacity: 0.5;
-    }
-    .poi-card.focused { opacity:1; }
-
-    .poi-icon {
-      font-size:1.8rem; flex-shrink:0; margin-top:2px;
-      filter: drop-shadow(0 0 8px rgba(201,162,39,0.4));
-    }
-
-    .poi-content { flex:1; }
-
-    .poi-name {
-      font-family:'Playfair Display', serif;
-      font-size:1.1rem; font-weight:700; color:#fff;
-      margin-bottom:4px;
-    }
-
-    .poi-desc {
-      font-size:0.82rem; line-height:1.65; color:#7a6a5a;
-    }
-
-    .poi-coords {
-      display:inline-block; margin-top:6px;
-      font-size:0.6rem; letter-spacing:1px; text-transform:uppercase;
-      color:var(--gold); opacity:0.6;
-      font-family:'Inter', sans-serif;
-    }
-
-    /* Quote */
-    .sheet-quote {
-      margin:16px 0;
-      border-left:3px solid var(--crimson);
-      padding:10px 16px;
-      background:rgba(176,16,32,0.06);
-      border-radius:0 8px 8px 0;
-      font-style:italic; color:#8a7a6a;
-      font-size:0.85rem; line-height:1.6;
-    }
-
-    /* ── BACK BUTTON (when on map) ── */
-    #back-btn {
-      position:fixed; bottom:24px; left:50%;
-      transform:translateX(-50%);
-      z-index:40;
-      background:rgba(10,6,4,0.85);
-      border:1px solid rgba(201,162,39,0.3);
-      color:var(--gold); font-size:0.68rem;
-      letter-spacing:2px; text-transform:uppercase;
-      padding:8px 20px; border-radius:999px;
-      cursor:pointer;
-      opacity:0; pointer-events:none;
-      transition: opacity 0.3s;
-    }
-    #back-btn.visible { opacity:1; pointer-events:auto; }
-
-    @media(max-width:600px){
-      #sheet { height:70vh; }
-      #filters { top:auto; bottom:20px; }
-      .sheet-title { font-size:1.4rem; }
-    }
+    #err{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+         background:rgba(176,16,32,.9);color:#fff;padding:20px 30px;border-radius:12px;
+         font-size:.9rem;max-width:500px;z-index:999;display:none;}
   </style>
 </head>
 <body>
-
 <canvas id="c"></canvas>
-
-<!-- TOP HUD -->
 <div id="hud">
   <div class="hud-title">Plemena <span>Crne Gore</span></div>
   <div class="hud-hint" id="hint">Click a tribe to explore</div>
 </div>
-
-<!-- FILTERS -->
 <div id="filters">
-  <button class="fpill on" data-f="all">All</button>
-  <button class="fpill" data-f="old-cg">Stara CG</button>
-  <button class="fpill" data-f="brda">Brda</button>
-  <button class="fpill" data-f="herc">Hercegovina</button>
-  <button class="fpill" data-f="coast">Primorje</button>
+  <button class="fp on" data-f="all">All</button>
+  <button class="fp" data-f="old-cg">Stara CG</button>
+  <button class="fp" data-f="brda">Brda</button>
+  <button class="fp" data-f="herc">Hercegovina</button>
+  <button class="fp" data-f="coast">Primorje</button>
 </div>
-
-<!-- HTML LABEL LAYER -->
 <div id="labels"></div>
-
-<!-- BOTTOM SHEET -->
 <div id="sheet">
-  <div class="sheet-strip" id="sheet-strip"></div>
-  <div class="sheet-head">
-    <div>
-      <div class="sheet-region" id="s-region"></div>
-      <div class="sheet-title" id="s-title"></div>
-      <div class="sheet-meta" id="s-meta"></div>
-    </div>
-    <button id="sheet-close">✕</button>
+  <div class="sstrip" id="sstrip"></div>
+  <div class="shead">
+    <div><div class="sreg" id="sreg"></div><div class="stitle" id="stitle"></div><div class="smeta" id="smeta"></div></div>
+    <button id="sc">✕</button>
   </div>
-  <div class="sheet-body" id="s-body"></div>
+  <div class="sbody" id="sbody"></div>
 </div>
-
-<button id="back-btn">← Full Map</button>
-
-<script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
-</script>
+<button id="backbtn">← Full Map</button>
+<div id="err"></div>
 
 <script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// ── Direct ESM imports (no importmap needed) ──────────────────
+import * as THREE from 'https://esm.sh/three@0.160.0';
+import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
-// ══════════════════════════════════════════════════════════════
-//  TRIBE DATA
-// ══════════════════════════════════════════════════════════════
-// Coordinate system: X = E/W (-13=west coast, +13=NE border)
-//                   Z = N/S (-13=south coast, +13=north border)
+function showErr(msg) {
+  const el = document.getElementById('err');
+  el.textContent = 'Error: ' + msg;
+  el.style.display = 'block';
+  console.error(msg);
+}
+
+try {
+
+// ── TRIBE DATA ────────────────────────────────────────────────
 const TRIBES = [
   {
     id:'vasojevici', name:'Vasojevići', region:'brda', regionLabel:'Brda · Highland Confederation',
     color:'#4A7FC1', motto:'"Vasojevići ne prodaju se za zlato"',
-    center:[9.5, 8], founded:'~15th c.', descendants:'200,000+',
-    summary:'The largest tribe in Montenegro and among the largest in the Balkans. Occupying the northeastern highlands at the foot of Komovi and Prokletije, the Vasojevići were both the shield and spear of Montenegro\'s eastern frontier for centuries.',
-    polygon:[[ 6, 5],[13, 5],[13,13],[ 8,13],[ 6,10]],
+    center:[9, 8], founded:'~15th c.', descendants:'200,000+',
+    summary:'The largest tribe in Montenegro and one of the largest in the Balkans. At the foot of the Komovi and Prokletije massifs, the Vasojevići guarded Montenegro\'s northeastern frontier for centuries with unmatched ferocity.',
+    polygon:[[5,5],[13,5],[13,13],[8,13],[5,10]],
     places:[
-      { ico:'⛰️', name:'Komovi', desc:'Three sacred peaks rising to 2,487m — the silhouette that defines Vasojevići identity. A rite of passage for every tribesman.', pos:[10,10] },
-      { ico:'🏘️', name:'Lijeva Rijeka', desc:'The ancestral cradle. The forefather Vaso drank from this "left river" and built the home that would outlast empires.', pos:[9, 8] },
-      { ico:'🏔️', name:'Prokletije', desc:'The "Accursed Mountains" on the Albanian border — a wilderness so wild even the Ottomans rarely dared enter.', pos:[12, 7] },
+      {ico:'⛰️',name:'Komovi',desc:'Three sacred peaks rising to 2,487m — the silhouette that defines Vasojevići identity. A rite of passage for every tribesman.',pos:[10,10]},
+      {ico:'🏘️',name:'Lijeva Rijeka',desc:'The ancestral cradle. The forefather Vaso settled here, drinking from the "left river" to build a home that would outlast empires.',pos:[9,7.5]},
+      {ico:'🏔️',name:'Prokletije',desc:'The "Accursed Mountains" on the Albanian border — a wilderness so wild even the Ottomans rarely dared enter.',pos:[11.5,6.5]},
     ]
   },
   {
     id:'rovcani', name:'Rovčani & Morača', region:'brda', regionLabel:'Brda · Canyon Dwellers',
     color:'#7B5EA7', motto:'"Iz Rovaca bez sramote"',
-    center:[4.5, 7.5], founded:'~14th c.', descendants:'35,000+',
-    summary:'Masters of the deep canyon. Rovčani and Morača tribes share the spectacular Morača River gorge, where monasteries cling to cliffs and the river carved a 1,000m wound in the mountain. Their isolation produced poets, monks, and relentless fighters in equal measure.',
-    polygon:[[ 2, 5],[ 6, 5],[ 6,11],[ 3,13],[ 1,11],[ 1, 6]],
+    center:[4, 7.5], founded:'~14th c.', descendants:'35,000+',
+    summary:'Masters of the deep canyon. The Morača River gorge — 1,000m of sheer limestone — was both home and fortress. Their isolation produced poets, monks, and relentless fighters in equal measure.',
+    polygon:[[1,5],[6,5],[6,11],[3,13],[0,11],[0,6]],
     places:[
-      { ico:'⛪', name:'Morača Monastery', desc:'Founded in 1252, its frescoes survived five centuries of raids. The most sacred site in northern Montenegro.', pos:[4, 7] },
-      { ico:'🏞️', name:'Morača Canyon', desc:'1,000m of sheer limestone walls. The river runs turquoise at the bottom — impossible to cross without knowing the hidden fords.', pos:[4.5, 6.5] },
-      { ico:'⛷️', name:'Kolašin', desc:'The highland gateway town at 960m altitude — now a ski resort, once the watchpost of the canyon tribes.', pos:[5, 7.5] },
+      {ico:'⛪',name:'Morača Monastery',desc:'Founded in 1252, its frescoes survived five centuries of raids. The most sacred site in northern Montenegro.',pos:[4,7]},
+      {ico:'🏞️',name:'Morača Canyon',desc:'1,000m of sheer limestone walls. The river runs turquoise at the bottom — impossible to cross without knowing the hidden fords.',pos:[4.5,6]},
+      {ico:'⛷️',name:'Kolašin',desc:'The highland gateway town at 960m — now a ski resort, once the watchtower of the canyon tribes.',pos:[5,7.5]},
     ]
   },
   {
     id:'drobnjaci', name:'Drobnjaci', region:'herc', regionLabel:'Stara Hercegovina · Plateau Warriors',
     color:'#3A8C6E', motto:'"Drobnjak — hajduk od kolevke"',
-    center:[0.5, 10.5], founded:'~14th c.', descendants:'40,000+',
-    summary:'Children of the highest plateau. The Drobnjaci inhabited the Durmitor massif — a limestone moonscape above 1,500m where the Tara River has carved the deepest canyon in Europe. This altitude was their shield; the hajduk was their weapon.',
-    polygon:[[-4, 7],[ 2, 7],[ 2,13],[-1,13],[-5,11]],
+    center:[0, 10.5], founded:'~14th c.', descendants:'40,000+',
+    summary:'Children of the highest plateau. The Drobnjaci inhabited the Durmitor massif — the highest tribal territory in Montenegro — where the Tara River carved the deepest canyon in Europe.',
+    polygon:[[-4,7],[2,7],[2,13],[-1,13],[-5,11]],
     places:[
-      { ico:'🏔️', name:'Durmitor', desc:'UNESCO World Heritage massif with 48 peaks over 2,000m. The Drobnjaci called its valleys home long before anyone declared it a national park.', pos:[0,11] },
-      { ico:'🌊', name:'Tara Canyon', desc:'1,300m deep — the second deepest canyon on Earth. Called "the Tear of Europe." Its crystal waters fed and defended the tribe for millennia.', pos:[1,10] },
-      { ico:'❄️', name:'Žabljak', desc:'At 1,456m, the highest town in the Balkans. Even in summer, snow can fall here. In winter, the Drobnjaci were cut off from the world entirely.', pos:[-0.5,12] },
+      {ico:'🏔️',name:'Durmitor',desc:'UNESCO World Heritage massif. The Drobnjaci called its valleys home long before anyone declared it a national park.',pos:[0,11]},
+      {ico:'🌊',name:'Tara Canyon',desc:'1,300m deep — the second deepest canyon on Earth. Called "the Tear of Europe." Its crystal waters fed and defended the tribe for millennia.',pos:[1,10]},
+      {ico:'❄️',name:'Žabljak',desc:'At 1,456m, the highest town in the Balkans. Even in summer, snow can fall. In winter, the Drobnjaci were completely isolated.',pos:[-0.5,12]},
     ]
   },
   {
     id:'kuci', name:'Kuči', region:'brda', regionLabel:'Brda · Eastern Gate',
     color:'#5B9BD5', motto:'"Kuči se ne daju"',
-    center:[5.5, 1], founded:'~15th c.', descendants:'40,000+',
-    summary:'Guardians of the eastern approaches to Podgorica. Kuči territory stretches from the rocky highlands north of the capital to the Albanian border. By Montenegrin standards they were among the most ferocious — which is saying something.',
-    polygon:[[ 3,-4],[ 9,-4],[11, 2],[ 8, 5],[ 4, 5],[ 2, 2]],
+    center:[5.5, 0.5], founded:'~15th c.', descendants:'40,000+',
+    summary:'Guardians of the eastern approaches to Podgorica. Among the fiercest warriors in Montenegro, the Kuči held the strategic highlands north of the capital against all comers.',
+    polygon:[[3,-4],[9,-4],[11,2],[8,5],[4,5],[2,1]],
     places:[
-      { ico:'🗻', name:'Kučka Krajina', desc:'The tribal highlands — a labyrinth of karst ridges and hidden valleys that stopped every Ottoman punitive expedition cold.', pos:[5.5, 2] },
-      { ico:'🏘️', name:'Tuzi', desc:'The main settlement of the Kuči zone, today a thriving town with a mixed Montenegrin-Albanian population.', pos:[5,-3] },
-      { ico:'⚔️', name:'Medieval Battlegrounds', desc:'The hills around Kuči saw more skirmishes, blood feuds, and epic last stands than perhaps anywhere else in Montenegro.', pos:[7, 0] },
+      {ico:'🗻',name:'Kučka Krajina',desc:'A labyrinth of karst ridges and hidden valleys that stopped every Ottoman punitive expedition cold.',pos:[5.5,2]},
+      {ico:'🏘️',name:'Tuzi',desc:'The main settlement — today a thriving town with a mixed Montenegrin-Albanian population at the foot of the highlands.',pos:[5,-3]},
+      {ico:'⚔️',name:'Highland Battlegrounds',desc:'The hills around Kuči saw more last stands and epic skirmishes than perhaps anywhere else in Montenegro.',pos:[7.5,0]},
     ]
   },
   {
     id:'bjelopavlici', name:'Bjelopavlići', region:'brda', regionLabel:'Brda · Valley Clan',
     color:'#2E8BC0', motto:'"Bijeli Pavle — korijen plemenski"',
     center:[-1.5, 2.5], founded:'~15th c.', descendants:'50,000+',
-    summary:'The tribe of the fertile Zeta plain. Unlike most Montenegrin clans who lived on bare rock, the Bjelopavlići had actual farmland — and the political sophistication that comes from trade and surplus. Many prominent statesmen trace their roots here.',
-    polygon:[[-5,-1],[ 0,-1],[ 0, 5],[-3, 6],[-6, 3]],
+    summary:'The tribe of the fertile Zeta plain. Unlike most Montenegrin clans who lived on bare rock, Bjelopavlići had farmland — and the political sophistication that comes with trade and surplus.',
+    polygon:[[-5,-1],[0,-1],[0,5],[-3,6],[-6,3]],
     places:[
-      { ico:'🌾', name:'Bjelopavlić Plain', desc:'One of the few patches of fertile lowland in central Montenegro. The tribe was rare in that it could actually grow wheat.', pos:[-1.5, 2] },
-      { ico:'🏙️', name:'Danilovgrad', desc:'Named after Prince Danilo I. A planned royal city in the 19th century, now a pleasant small town on the Zeta River.', pos:[-0.5, 0.5] },
-      { ico:'🏛️', name:'Old Zeta Churches', desc:'Pre-tribal medieval churches dot this valley — evidence of a civilization that predates the Ottoman disruption.', pos:[-3, 3] },
-    ]
-  },
-  {
-    id:'piperi', name:'Piperi', region:'brda', regionLabel:'Brda · Lowland Warriors',
-    color:'#1B82B8', motto:'"Piper ne traži pomoć tuđu"',
-    center:[1.5, 1.5], founded:'~15th c.', descendants:'30,000+',
-    summary:'A tribe caught between worlds — the Ottoman fortress of Spuž on one side, the Montenegrin mountains on the other. For generations the Piperi existed in this grey zone, trading and raiding in equal measure, until 1878 brought liberation.',
-    polygon:[[-1,-3],[ 3,-3],[ 3, 2],[0, 2],[-1, 0]],
-    places:[
-      { ico:'🏯', name:'Spuž Fortress', desc:'The Ottoman stronghold that loomed over Piperi territory for centuries. Finally taken by the Montenegrin army in 1878, ending 400 years of shadow.', pos:[1.5, -2] },
-      { ico:'🌊', name:'Zeta River Valley', desc:'The river that separates and connects. The Piperi knew every ford and crossing — essential knowledge in a country with no bridges.', pos:[1, 1] },
+      {ico:'🌾',name:'Bjelopavlić Plain',desc:'One of the few patches of fertile lowland in central Montenegro. The tribe was rare in that it could actually grow wheat.',pos:[-1.5,2]},
+      {ico:'🏙️',name:'Danilovgrad',desc:'Named after Prince Danilo I — a planned royal city in the 19th century, now a pleasant town on the Zeta River.',pos:[-0.5,0.5]},
+      {ico:'🏛️',name:'Old Zeta Churches',desc:'Pre-tribal medieval churches dot this valley — evidence of a civilisation predating the Ottoman disruption.',pos:[-3,3.5]},
     ]
   },
   {
     id:'niksicci', name:'Nikšić & Banjani', region:'herc', regionLabel:'Stara Hercegovina · Plateau Clans',
     color:'#2E8B57', motto:'"Nikšić — grad pod krilima"',
     center:[-5.5, 4], founded:'~14th c.', descendants:'60,000+',
-    summary:'The tribes of the southwestern plateau, centered on the walled city of Nikšić (Ottoman Onogošt). A crossroads between Herzegovina and Montenegro, between sea wind and mountain cold. The Banjani, Pješivci, and Nikšić clan formed a loose confederation of highland cattle herders and, when needed, warriors.',
-    polygon:[[-9, 1],[-3, 1],[-3, 8],[-6, 9],[-10, 6]],
+    summary:'Tribes of the southwestern plateau, centered on the fortress city of Nikšić. A crossroads between Herzegovina and Montenegro, between sea wind and mountain cold.',
+    polygon:[[-9,1],[-3,1],[-3,8],[-6,9],[-10,6]],
     places:[
-      { ico:'🏙️', name:'Nikšić', desc:'Montenegro\'s second city — the old Ottoman fortress finally taken in 1877. Today home to Montenegro\'s famous brewery. Čovjek od kefa.', pos:[-5.5, 3.5] },
-      { ico:'⛪', name:'Ostrog Monastery', desc:'Built into a sheer cliff face in the 17th century. Over 200,000 pilgrims visit yearly — Christian and Muslim alike. The most visited place in Montenegro.', pos:[-4, 2.5] },
-      { ico:'🪨', name:'Banjani Plateau', desc:'High karst plateau scattered with ancient standing stones and shepherd huts. Cattle still graze here exactly as they did a thousand years ago.', pos:[-7, 5] },
+      {ico:'🏙️',name:'Nikšić',desc:'Montenegro\'s second city. The old Ottoman fortress of Onogošt — finally taken in 1877. Today home to Montenegro\'s celebrated brewery.',pos:[-5.5,3.5]},
+      {ico:'⛪',name:'Ostrog Monastery',desc:'Built into a sheer cliff face in the 17th century. Over 200,000 pilgrims visit yearly — Christian and Muslim alike. The most visited place in Montenegro.',pos:[-4,2.5]},
+      {ico:'🪨',name:'Banjani Plateau',desc:'High karst plateau scattered with ancient standing stones and shepherd huts, unchanged for a thousand years.',pos:[-7,5]},
     ]
   },
   {
     id:'njegusis', name:'Njeguši & Old Montenegro', region:'old-cg', regionLabel:'Stara Crna Gora · The Heartland',
     color:'#C41E3A', motto:'"Čojstvo i Junaštvo"',
     center:[-3.5, -1.5], founded:'~13th c.', descendants:'100,000+',
-    summary:'The original. The Katunska nahija — the Njeguši, Cuce, Bjeličani, Zagaračani — formed the beating heart of Montenegro through centuries of Ottoman assault. From Cetinje and Lovćen mountain, the Prince-Bishops of the Petrović dynasty ruled, and one of them — Petar II Petrović Njegoš — wrote the soul of a nation.',
-    polygon:[[-8,-5],[-2,-5],[-2, 1],[-5, 2],[-9, 0],[-9,-4]],
+    summary:'The original heartland. From Cetinje and Lovćen mountain, the Prince-Bishops of the Petrović dynasty ruled — and one of them, Petar II Petrović Njegoš, wrote the soul of a nation.',
+    polygon:[[-8,-5],[-2,-5],[-2,1],[-5,2],[-9,0],[-9,-4]],
     places:[
-      { ico:'👑', name:'Cetinje', desc:'The royal capital. A city of monasteries, embassies from six powers, and one fierce, unconquerable people. The heart of Montenegrin history.', pos:[-3.5,-3] },
-      { ico:'⛰️', name:'Lovćen', desc:'The Black Mountain itself — from which Montenegro takes its name. Njegoš\' mausoleum sits at 1,749m, where he is buried in stone, watching over his people.', pos:[-4.5,-1] },
-      { ico:'🏠', name:'Njeguši', desc:'A tiny village that produced a dynasty and the world\'s finest smoked prosciutto. Petar II Petrović Njegoš was born here in 1813.', pos:[-5,-0.5] },
+      {ico:'👑',name:'Cetinje',desc:'The royal capital. A city of monasteries and embassies, seat of the Petrović dynasty and the heart of Montenegrin history.',pos:[-3.5,-3]},
+      {ico:'⛰️',name:'Lovćen',desc:'The Black Mountain itself. Njegoš\' mausoleum sits at 1,749m, where he watches over his people for eternity.',pos:[-4.5,-1]},
+      {ico:'🏠',name:'Njeguši',desc:'A tiny village that produced a dynasty and the world\'s finest smoked prosciutto. Njegos was born here in 1813.',pos:[-5,-0.5]},
     ]
   },
   {
     id:'rijeckani', name:'Riječani & Crnojevići', region:'old-cg', regionLabel:'Stara Crna Gora · The Founders',
     color:'#9B1020', motto:'"Od Crnojevića — od Crne Gore"',
     center:[-1.5, -5], founded:'~15th c.', descendants:'20,000+',
-    summary:'The tribe of the last medieval dynasty. The Crnojevići ruled the state of Zeta until the Ottoman conquest, then melted into the landscape as a clan — keeping the flame of resistance alive. Their seat, Rijeka Crnojevića, hosted the first printing press in the Balkans.',
-    polygon:[[-4,-8],[ 2,-8],[ 3,-4],[-2,-4],[-5,-6]],
+    summary:'The tribe of the last medieval dynasty. The Crnojevići ruled Zeta until the Ottoman conquest, then became the seed of resistance. Their seat hosted the first printing press in the Balkans.',
+    polygon:[[-4,-8],[2,-8],[3,-4],[-2,-4],[-5,-6]],
     places:[
-      { ico:'📜', name:'First Printing Press', desc:'In 1494, Ivan Crnojević printed the Oktoih — the first Cyrillic book. A Balkan cultural revolution, from this tiny lakeside village.', pos:[-1.5,-5.5] },
-      { ico:'🌊', name:'Lake Skadar', desc:'The largest lake in the Balkans — a tribal sea of reeds, pelicans, and sunken medieval fortresses. A world of its own.', pos:[0,-6.5] },
-      { ico:'🏘️', name:'Rijeka Crnojevića', desc:'Frozen in 15th century stone on the lake shore. Every building here remembers when this was the capital of a kingdom.', pos:[-2,-6] },
+      {ico:'📜',name:'First Printing Press',desc:'In 1494, Ivan Crnojević printed the Oktoih — the first Cyrillic book. A Balkan cultural revolution from this tiny lakeside village.',pos:[-1.5,-5.5]},
+      {ico:'🌊',name:'Lake Skadar',desc:'The largest lake in the Balkans — a world of reeds, pelicans, and sunken medieval fortresses.',pos:[0.5,-6.5]},
+      {ico:'🏘️',name:'Rijeka Crnojevića',desc:'Frozen in 15th century stone on the lake shore. Every building remembers when this was a capital of a kingdom.',pos:[-2,-6]},
     ]
   },
   {
     id:'pastrovici', name:'Paštrovići', region:'coast', regionLabel:'Primorje · Adriatic Warriors',
     color:'#C9A227', motto:'"More i gora — Paštrovića zemlja"',
-    center:[-5.5,-7.5], founded:'~14th c.', descendants:'25,000+',
-    summary:'Where the mountain meets the sea. Paštrovići controlled the Adriatic coast around Budva with their own unique legal charter — the Paštrovska listina — maintained under both Venetian and Ottoman rule. They were both sailors and swordsmen, neither wholly Mediterranean nor wholly mountain.',
+    center:[-5.5, -7.5], founded:'~14th c.', descendants:'25,000+',
+    summary:'Where mountain meets sea. The Paštrovići maintained their own unique legal charter under both Venetian and Ottoman rule — neither wholly Mediterranean nor wholly mountain.',
     polygon:[[-9,-11],[-4,-11],[-4,-8],[-7,-7],[-10,-9]],
     places:[
-      { ico:'🏝️', name:'Sveti Stefan', desc:'The fortified island village built by Paštrovići hands in the 15th century. Now one of Europe\'s most iconic hotels, it once housed an entire fishing community.', pos:[-5,-8] },
-      { ico:'🌊', name:'Budva Old Town', desc:'2,500 years of civilisation enclosed in Venetian-era walls. The Paštrovići treated this as their capital and their market.', pos:[-6,-8.5] },
-      { ico:'⛪', name:'Praskvica Monastery', desc:'Perched on the clifftop above the Adriatic since the 14th century. The spiritual anchor of the Paštrovići world.', pos:[-6.5,-7] },
+      {ico:'🏝️',name:'Sveti Stefan',desc:'The fortified island village built by Paštrovići hands in the 15th century. Now one of Europe\'s most iconic hotels.',pos:[-5,-8]},
+      {ico:'🌊',name:'Budva Old Town',desc:'2,500 years of civilisation enclosed in Venetian-era walls. The Paštrovići\'s capital and marketplace.',pos:[-6,-8.5]},
+      {ico:'⛪',name:'Praskvica Monastery',desc:'Perched on the clifftop above the Adriatic since the 14th century — the spiritual anchor of the Paštrovići world.',pos:[-6.5,-7]},
     ]
   },
   {
     id:'grbalj', name:'Grbalj', region:'coast', regionLabel:'Primorje · Kotor Bay',
     color:'#B8860B', motto:'"Grbalj — ključ od Boke"',
-    center:[-9,-5.5], founded:'~13th c.', descendants:'15,000+',
-    summary:'The tribe above Kotor. Grbalj sits on the ridged karst directly over the UNESCO-protected bay — the supply zone, the defensive high ground, and the cultural hinterland of one of the finest medieval cities in the Adriatic.',
+    center:[-9, -5.5], founded:'~13th c.', descendants:'15,000+',
+    summary:'The tribe above Kotor. Grbalj sits on the ridged karst directly overlooking the UNESCO-protected bay — the defensive high ground and cultural hinterland of one of the finest medieval Adriatic cities.',
     polygon:[[-13,-8],[-9,-8],[-9,-4],[-12,-4],[-13,-6]],
     places:[
-      { ico:'🏰', name:'Kotor Old Town', desc:'A medieval fortress city of 2,000 years, protected by 4.5km of walls that climb the cliff behind it. UNESCO World Heritage since 1979.', pos:[-10,-6.5] },
-      { ico:'⛵', name:'Boka Kotorska', desc:'The deepest, most dramatic bay in the Adriatic — often called the Mediterranean\'s fjord. A world of its own, shared by Venetians, Serbs, and Croats.', pos:[-10.5,-5.5] },
-      { ico:'⛪', name:'Cathedral of St. Tryphon', desc:'Kotor\'s Romanesque cathedral (1166) contains relics dating to the 8th century. Still the spiritual heart of the bay.', pos:[-10,-5] },
+      {ico:'🏰',name:'Kotor Old Town',desc:'A 2,000-year-old fortress city, protected by 4.5km of walls that climb the cliff behind it. UNESCO World Heritage since 1979.',pos:[-10,-6.5]},
+      {ico:'⛵',name:'Boka Kotorska',desc:'The deepest, most dramatic bay in the Adriatic — often called the Mediterranean\'s fjord. A world shared by Venetians and Slavs.',pos:[-10.5,-5.5]},
+      {ico:'⛪',name:'Cathedral of St. Tryphon',desc:'Kotor\'s Romanesque cathedral (1166) with relics dating to the 8th century. Still the spiritual heart of the bay.',pos:[-10,-5]},
     ]
   },
   {
     id:'malesija', name:'Malesija', region:'coast', regionLabel:'Primorje / Border · Bicultural Frontier',
     color:'#8B6914', motto:'"E Malësia me trimëri"',
-    center:[4,-8], founded:'~15th c.', descendants:'30,000+',
-    summary:'The southernmost world. Malesija (Malësia in Albanian) straddles the Montenegrin-Albanian border — home to both South Slavic and Albanian-speaking clans who followed neither empire fully. The Kanun of Lekë Dukagjini governed much of daily life here, alongside Montenegrin highland law.',
-    polygon:[[ 2,-13],[ 8,-8],[ 6,-4],[3,-4],[2,-8]],
+    center:[4, -8], founded:'~15th c.', descendants:'30,000+',
+    summary:'The southernmost world. Malesija straddles the Montenegrin-Albanian border, home to both Slavic and Albanian-speaking clans who followed neither empire fully. The Kanun of Lekë Dukagjini governed daily life here.',
+    polygon:[[2,-13],[8,-8],[6,-4],[3,-4],[2,-8]],
     places:[
-      { ico:'🏔️', name:'Prokletije / Accursed Mts', desc:'Wild peaks shared between Montenegro, Albania and Kosovo. So remote and rugged they earned the name "Accursed" — only locals could navigate them.', pos:[6,-6] },
-      { ico:'🏘️', name:'Tuzi', desc:'The main Montenegrin town of the border zone — today majority Albanian-speaking, a vivid example of the region\'s layered identity.', pos:[5,-5] },
-      { ico:'🌊', name:'Lake Skadar — South Shore', desc:'The southern end of the great lake, where pelicans fish in winter mist and fishermen still use methods unchanged for centuries.', pos:[3,-9] },
+      {ico:'🏔️',name:'Prokletije',desc:'Wild peaks shared between Montenegro, Albania and Kosovo. So remote they earned the name "Accursed" — only locals could navigate them.',pos:[6,-6]},
+      {ico:'🏘️',name:'Tuzi',desc:'The main Montenegrin border town — majority Albanian-speaking today, a vivid example of the region\'s layered identity.',pos:[5,-5]},
+      {ico:'🌊',name:'Lake Skadar South',desc:'Where pelicans fish in winter mist and fishermen still use methods unchanged for centuries.',pos:[3,-9]},
     ]
   },
 ];
 
-// ══════════════════════════════════════════════════════════════
-//  THREE.JS SETUP
-// ══════════════════════════════════════════════════════════════
+// ── THREE.JS SETUP ────────────────────────────────────────────
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0B0705);
-scene.fog = new THREE.FogExp2(0x0B0705, 0.016);
+scene.fog = new THREE.FogExp2(0x0B0705, 0.014);
 
-const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 400);
+const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 400);
 camera.position.set(0, 32, 52);
 camera.lookAt(0, 0, 0);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping=true; controls.dampingFactor=0.06;
-controls.autoRotate=true; controls.autoRotateSpeed=0.3;
-controls.enableZoom=true; controls.minDistance=18; controls.maxDistance=90;
-controls.maxPolarAngle=Math.PI/2.1;
-controls.target.set(0,0,0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.3;
+controls.enableZoom = true;
+controls.minDistance = 18;
+controls.maxDistance = 90;
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.target.set(0, 0, 0);
 
-// ── LIGHTING ──────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0x1a1008, 4));
-const sun = new THREE.DirectionalLight(0xC9A227, 5);
-sun.position.set(20,40,15); scene.add(sun);
-scene.add(Object.assign(new THREE.DirectionalLight(0x4A7FC1, 1.5),{position: new THREE.Vector3(-30,15,-20)}));
-scene.add(Object.assign(new THREE.DirectionalLight(0xC41E3A, 0.8),{position: new THREE.Vector3(10,5,-30)}));
+// ── LIGHTING ─────────────────────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0x2a1e10, 5);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xC9A227, 6);
+sunLight.position.set(20, 40, 15);
+scene.add(sunLight);
+
+const fillLight = new THREE.DirectionalLight(0x4A7FC1, 2);
+fillLight.position.set(-30, 15, -20);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0xC41E3A, 1.2);
+rimLight.position.set(10, 5, -30);
+scene.add(rimLight);
 
 // ── TERRAIN MATH ──────────────────────────────────────────────
-function hash(n){return Math.sin(n*127.1)*43758.5453;}
-function fract(n){return n-Math.floor(n);}
-function n2(x,y){
-  const ix=Math.floor(x),iy=Math.floor(y),fx=fract(x),fy=fract(y);
-  const ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy);
-  return fract(hash(ix+iy*57)+(fract(hash(ix+1+iy*57))-fract(hash(ix+iy*57)))*ux+(fract(hash(ix+(iy+1)*57))-fract(hash(ix+iy*57)))*uy+(fract(hash(ix+1+(iy+1)*57))-fract(hash(ix+1+iy*57))-fract(hash(ix+(iy+1)*57))+fract(hash(ix+iy*57)))*ux*uy);
+function hash(n) { return Math.sin(n * 127.1) * 43758.5453; }
+function fract(n) { return n - Math.floor(n); }
+function noise2(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = fract(x), fy = fract(y);
+  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+  const a = fract(hash(ix + iy * 57));
+  const b = fract(hash(ix + 1 + iy * 57));
+  const c = fract(hash(ix + (iy + 1) * 57));
+  const d = fract(hash(ix + 1 + (iy + 1) * 57));
+  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
 }
-function fbm(x,y,o=7){let v=0,a=0.5,f=1,m=0;for(let i=0;i<o;i++){v+=n2(x*f,y*f)*a;m+=a;a*=0.5;f*=2.1;}return v/m;}
-
-function mh(x,z){ // Montenegro height field
-  const nx=(x+14)/28, nz=(z+14)/28;
-  let h=fbm(nx*4+0.5,nz*4+0.5)*11;
-  if(z>4)  h+=Math.pow(Math.max(0,(z-4)/10),1.4)*10; // N mountains
-  const ld=Math.sqrt((x-2.5)*(x-2.5)+(z+5.5)*(z+5.5));
-  if(ld<4.5) h-=(4.5-ld)*1.3; // lake skadar
-  if(z<-7) h*=Math.max(0.05,1+(z+7)*0.22); // coast
-  const zd=Math.sqrt((x-2)*(x-2)+(z+2)*(z+2));
-  if(zd<2.5) h*=0.25; // zeta plain
-  const lov=Math.sqrt((x+4)*(x+4)+(z+1.5)*(z+1.5));
-  if(lov<3) h+=(3-lov)*0.9; // lovćen
-  const ex=Math.max(0,1-Math.abs(x)/13.5);
-  const ez=Math.max(0,1-Math.abs(z)/13.5);
-  h*=ex*ez;
-  return Math.max(0,h);
+function fbm(x, y) {
+  let v = 0, a = 0.5, f = 1, m = 0;
+  for (let i = 0; i < 7; i++) { v += noise2(x * f, y * f) * a; m += a; a *= 0.5; f *= 2.1; }
+  return v / m;
+}
+function mh(x, z) {
+  const nx = (x + 14) / 28, nz = (z + 14) / 28;
+  let h = fbm(nx * 4 + 0.5, nz * 4 + 0.5) * 11;
+  if (z > 4) h += Math.pow(Math.max(0, (z - 4) / 10), 1.4) * 10;
+  const ld = Math.sqrt((x - 2.5) * (x - 2.5) + (z + 5.5) * (z + 5.5));
+  if (ld < 4.5) h -= (4.5 - ld) * 1.3;
+  if (z < -7) h *= Math.max(0.05, 1 + (z + 7) * 0.22);
+  const zd = Math.sqrt((x - 2) * (x - 2) + (z + 2) * (z + 2));
+  if (zd < 2.5) h *= 0.25;
+  const lov = Math.sqrt((x + 4) * (x + 4) + (z + 1.5) * (z + 1.5));
+  if (lov < 3) h += (3 - lov) * 0.9;
+  const ex = Math.max(0, 1 - Math.abs(x) / 13.5);
+  const ez = Math.max(0, 1 - Math.abs(z) / 13.5);
+  return Math.max(0, h * ex * ez);
 }
 
-// ── BUILD TERRAIN ────────────────────────────────────────────
-const RES=200, SZ=26;
-const tGeo = new THREE.PlaneGeometry(SZ*2, SZ*2, RES, RES);
+// ── BUILD TERRAIN ─────────────────────────────────────────────
+const RES = 160, SZ = 26;
+const tGeo = new THREE.PlaneGeometry(SZ * 2, SZ * 2, RES, RES);
 const tPos = tGeo.attributes.position;
 const hArr = new Float32Array(tPos.count);
 
-for(let i=0;i<tPos.count;i++){
-  const h=mh(tPos.getX(i),tPos.getY(i));
-  hArr[i]=h; tPos.setZ(i,h);
+for (let i = 0; i < tPos.count; i++) {
+  const h = mh(tPos.getX(i), tPos.getY(i));
+  hArr[i] = h;
+  tPos.setZ(i, h);
 }
 tGeo.computeVertexNormals();
 
-const cW=new THREE.Color(0x0d2a3a),cL=new THREE.Color(0x2C1A0A),
-      cM=new THREE.Color(0x4A3020),cH=new THREE.Color(0x8B7355),cS=new THREE.Color(0xE8E0D0);
-const vC=new Float32Array(tPos.count*3);
-for(let i=0;i<tPos.count;i++){
-  const t=Math.max(0,Math.min(1,hArr[i]/13));
-  let c=hArr[i]<0.2?cW.clone():t<0.15?cL.clone().lerp(cM,t/0.15):t<0.55?cM.clone().lerp(cH,(t-0.15)/0.4):cH.clone().lerp(cS,(t-0.55)/0.45);
-  vC[i*3]=c.r;vC[i*3+1]=c.g;vC[i*3+2]=c.b;
+// Vertex colours by elevation
+const colWater = new THREE.Color(0x0d2a3a);
+const colLow   = new THREE.Color(0x3C2A18);
+const colMid   = new THREE.Color(0x5A4030);
+const colHigh  = new THREE.Color(0x9B7B55);
+const colSnow  = new THREE.Color(0xE8E0D0);
+const vColors  = new Float32Array(tPos.count * 3);
+
+for (let i = 0; i < tPos.count; i++) {
+  const t = Math.max(0, Math.min(1, hArr[i] / 13));
+  let col;
+  if (hArr[i] < 0.2) col = colWater.clone();
+  else if (t < 0.15) col = colLow.clone().lerp(colMid, t / 0.15);
+  else if (t < 0.55) col = colMid.clone().lerp(colHigh, (t - 0.15) / 0.4);
+  else               col = colHigh.clone().lerp(colSnow, (t - 0.55) / 0.45);
+  vColors[i * 3]     = col.r;
+  vColors[i * 3 + 1] = col.g;
+  vColors[i * 3 + 2] = col.b;
 }
-tGeo.setAttribute('color',new THREE.BufferAttribute(vC,3));
+tGeo.setAttribute('color', new THREE.BufferAttribute(vColors, 3));
 
-const terrain=new THREE.Mesh(tGeo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9,metalness:0.05}));
-terrain.rotation.x=-Math.PI/2; scene.add(terrain);
+const terrain = new THREE.Mesh(tGeo, new THREE.MeshStandardMaterial({
+  vertexColors: true, roughness: 0.85, metalness: 0.05
+}));
+terrain.rotation.x = -Math.PI / 2;
+scene.add(terrain);
 
-// Subtle wire
-const wire=new THREE.Mesh(tGeo,new THREE.MeshBasicMaterial({color:0xC9A227,wireframe:true,opacity:0.03,transparent:true}));
-wire.rotation.x=-Math.PI/2; wire.position.y=0.05; scene.add(wire);
+// Wireframe overlay
+const wireMesh = new THREE.Mesh(tGeo, new THREE.MeshBasicMaterial({
+  color: 0xC9A227, wireframe: true, opacity: 0.04, transparent: true
+}));
+wireMesh.rotation.x = -Math.PI / 2;
+wireMesh.position.y = 0.05;
+scene.add(wireMesh);
 
-// ── TRIBAL BORDERS + FILLS ────────────────────────────────────
-const tribeObjects3d = []; // for raycasting
+// ── TRIBAL FILLS + BORDERS ────────────────────────────────────
+const clickTargets = [];
 
-TRIBES.forEach(tribe=>{
-  // Extrude polygon slightly above terrain for fill
+TRIBES.forEach(tribe => {
+  // Shape (note: ShapeGeometry is in XY plane; after rotation.x=-PI/2, shape Y → world -Z)
   const shape = new THREE.Shape();
-  tribe.polygon.forEach(([x,z],i)=>{
-    i===0?shape.moveTo(x,-z):shape.lineTo(x,-z); // negate z because shape Y → world -Z after rotation
+  tribe.polygon.forEach(([x, z], i) => {
+    if (i === 0) shape.moveTo(x, -z);
+    else shape.lineTo(x, -z);
   });
   shape.closePath();
 
-  // Fill
-  const fillG = new THREE.ShapeGeometry(shape);
-  const fillM = new THREE.MeshBasicMaterial({
-    color: tribe.color, transparent:true, opacity:0.12,
-    side:THREE.DoubleSide, depthWrite:false
+  // Transparent fill
+  const fillGeo = new THREE.ShapeGeometry(shape);
+  const fillMat = new THREE.MeshBasicMaterial({
+    color: tribe.color, transparent: true, opacity: 0.12,
+    side: THREE.DoubleSide, depthWrite: false
   });
-  const fill = new THREE.Mesh(fillG,fillM);
-  fill.rotation.x=-Math.PI/2; fill.position.y=1.8;
-  fill.userData={tribe, isFill:true};
-  scene.add(fill); tribeObjects3d.push(fill);
+  const fill = new THREE.Mesh(fillGeo, fillMat);
+  fill.rotation.x = -Math.PI / 2;
+  fill.position.y = 1.8;
+  fill.userData = { tribe };
+  scene.add(fill);
+  tribe._fill = fill;
+  tribe._fillMat = fillMat;
+  clickTargets.push(fill);
 
-  // Border line (follows terrain)
-  const borderPts=[];
-  const pts=[...tribe.polygon, tribe.polygon[0]];
-  for(let i=0;i<pts.length-1;i++){
-    const [x0,z0]=pts[i],[x1,z1]=pts[i+1];
-    const segs=12;
-    for(let s=0;s<=segs;s++){
-      const t=s/segs, xi=x0+(x1-x0)*t, zi=z0+(z1-z0)*t;
-      borderPts.push(new THREE.Vector3(xi, mh(xi,zi)+2.0, zi));
+  // Border line following terrain
+  const bPts = [];
+  const poly = [...tribe.polygon, tribe.polygon[0]];
+  for (let i = 0; i < poly.length - 1; i++) {
+    const [x0, z0] = poly[i], [x1, z1] = poly[i + 1];
+    for (let s = 0; s <= 10; s++) {
+      const t = s / 10;
+      const xi = x0 + (x1 - x0) * t;
+      const zi = z0 + (z1 - z0) * t;
+      bPts.push(new THREE.Vector3(xi, mh(xi, zi) + 2.0, zi));
     }
   }
-  const borderG=new THREE.BufferGeometry().setFromPoints(borderPts);
-  const borderM=new THREE.LineBasicMaterial({color:tribe.color, opacity:0.7, transparent:true});
-  scene.add(new THREE.Line(borderG,borderM));
-
-  // Center click sphere (invisible, just for raycasting)
-  const [cx,cz]=tribe.center;
-  const cy=mh(cx,cz)+1.5;
-  const clickS=new THREE.Mesh(
-    new THREE.SphereGeometry(1.8,8,8),
-    new THREE.MeshBasicMaterial({visible:false})
+  const borderLine = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(bPts),
+    new THREE.LineBasicMaterial({ color: tribe.color, opacity: 0.75, transparent: true })
   );
-  clickS.position.set(cx,cy,cz);
-  clickS.userData={tribe};
-  scene.add(clickS); tribeObjects3d.push(clickS);
+  scene.add(borderLine);
+  tribe._border = borderLine;
 
-  // Glow dot at center
-  const dotS=new THREE.Mesh(
-    new THREE.SphereGeometry(0.28,12,12),
-    new THREE.MeshStandardMaterial({color:tribe.color,emissive:tribe.color,emissiveIntensity:2,roughness:0.2})
+  // Invisible click sphere at center
+  const [cx, cz] = tribe.center;
+  const clickSphere = new THREE.Mesh(
+    new THREE.SphereGeometry(2, 8, 8),
+    new THREE.MeshBasicMaterial({ visible: false })
   );
-  dotS.position.set(cx,cy+0.2,cz);
-  scene.add(dotS);
-  tribe._dot=dotS;
+  clickSphere.position.set(cx, mh(cx, cz) + 1.5, cz);
+  clickSphere.userData = { tribe };
+  scene.add(clickSphere);
+  clickTargets.push(clickSphere);
+
+  // Glow dot
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.3, 12, 12),
+    new THREE.MeshStandardMaterial({ color: tribe.color, emissive: tribe.color, emissiveIntensity: 2, roughness: 0.2 })
+  );
+  dot.position.set(cx, mh(cx, cz) + 0.5, cz);
+  scene.add(dot);
+  tribe._dot = dot;
 
   // Ring
-  const ringG=new THREE.RingGeometry(0.45,0.6,32);
-  const ringM=new THREE.MeshBasicMaterial({color:tribe.color,side:THREE.DoubleSide,transparent:true,opacity:0.6});
-  const ring=new THREE.Mesh(ringG,ringM);
-  ring.position.set(cx,cy+0.1,cz); ring.rotation.x=-Math.PI/2;
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.5, 0.65, 32),
+    new THREE.MeshBasicMaterial({ color: tribe.color, side: THREE.DoubleSide, transparent: true, opacity: 0.55 })
+  );
+  ring.position.set(cx, mh(cx, cz) + 0.1, cz);
+  ring.rotation.x = -Math.PI / 2;
   scene.add(ring);
-  tribe._fill=fill; tribe._fillMat=fillM;
 });
 
-// ── POI MARKERS ──────────────────────────────────────────────
-const poiMarkers=[];
-TRIBES.forEach(tribe=>{
-  tribe.places.forEach((p,i)=>{
-    const [px,pz]=p.pos;
-    const py=mh(px,pz)+1.2;
-    const m=new THREE.Mesh(
-      new THREE.SphereGeometry(0.18,8,8),
-      new THREE.MeshStandardMaterial({color:tribe.color,emissive:tribe.color,emissiveIntensity:1.5,roughness:0.2})
+// ── POI MARKERS ───────────────────────────────────────────────
+const poiMarkers = [];
+TRIBES.forEach(tribe => {
+  tribe.places.forEach((p) => {
+    const [px, pz] = p.pos;
+    const marker = new THREE.Mesh(
+      new THREE.SphereGeometry(0.2, 8, 8),
+      new THREE.MeshStandardMaterial({ color: tribe.color, emissive: tribe.color, emissiveIntensity: 1.8, roughness: 0.2 })
     );
-    m.position.set(px,py,pz);
-    m.userData={tribe,poi:p,idx:i};
-    m.visible=false;
-    scene.add(m); poiMarkers.push(m);
+    marker.position.set(px, mh(px, pz) + 0.8, pz);
+    marker.visible = false;
+    scene.add(marker);
+    poiMarkers.push({ mesh: marker, tribe, poi: p });
   });
 });
 
 // ── RAYCASTING ────────────────────────────────────────────────
-const ray=new THREE.Raycaster();
-const mouse=new THREE.Vector2();
-let selectedTribe=null;
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let selectedTribe = null;
 
-renderer.domElement.addEventListener('click',e=>{
-  if(selectedTribe) return; // don't reselect while panel open
-  mouse.x=(e.clientX/innerWidth)*2-1;
-  mouse.y=-(e.clientY/innerHeight)*2+1;
-  ray.setFromCamera(mouse,camera);
-  const hits=ray.intersectObjects(tribeObjects3d);
-  if(hits.length) selectTribe(hits[0].object.userData.tribe);
+renderer.domElement.addEventListener('click', e => {
+  if (selectedTribe) return;
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(clickTargets);
+  if (hits.length) selectTribe(hits[0].object.userData.tribe);
 });
 
-renderer.domElement.addEventListener('mousemove',e=>{
-  mouse.x=(e.clientX/innerWidth)*2-1;
-  mouse.y=-(e.clientY/innerHeight)*2+1;
-  ray.setFromCamera(mouse,camera);
-  const hits=ray.intersectObjects(tribeObjects3d);
-  renderer.domElement.style.cursor=hits.length?'pointer':'grab';
+renderer.domElement.addEventListener('mousemove', e => {
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(clickTargets);
+  renderer.domElement.style.cursor = hits.length ? 'pointer' : 'grab';
 });
 
-// ── HTML LABELS ───────────────────────────────────────────────
-function renderLabels(){
-  const layer=document.getElementById('labels');
-  layer.innerHTML='';
-  TRIBES.forEach(tribe=>{
-    if(activeFilter!=='all'&&tribe.region!==activeFilter) return;
-    const [cx,cz]=tribe.center;
-    const cy=mh(cx,cz)+2.5;
-    const v=new THREE.Vector3(cx,cy,cz).project(camera);
-    if(v.z>1) return;
-    const x=(v.x*0.5+0.5)*innerWidth;
-    const y=(-v.y*0.5+0.5)*innerHeight;
-    const el=document.createElement('div');
-    el.className='tlabel';
-    el.style.left=x+'px'; el.style.top=y+'px';
-    el.style.color=tribe.color;
-    el.innerHTML=`<div class="tdot" style="background:${tribe.color}"></div><div class="tname">${tribe.name}</div>`;
-    el.addEventListener('click',()=>selectTribe(tribe));
+// ── LABELS ────────────────────────────────────────────────────
+let activeFilter = 'all';
+function renderLabels() {
+  const layer = document.getElementById('labels');
+  layer.innerHTML = '';
+  TRIBES.forEach(tribe => {
+    if (activeFilter !== 'all' && tribe.region !== activeFilter) return;
+    const [cx, cz] = tribe.center;
+    const cy = mh(cx, cz) + 2.8;
+    const v = new THREE.Vector3(cx, cy, cz).project(camera);
+    if (v.z >= 1) return;
+    const x = (v.x * 0.5 + 0.5) * innerWidth;
+    const y = (-v.y * 0.5 + 0.5) * innerHeight;
+    const el = document.createElement('div');
+    el.className = 'tlabel';
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.color = tribe.color;
+    el.innerHTML = `<div class="tdot" style="background:${tribe.color}"></div><div class="tname">${tribe.name}</div>`;
+    el.addEventListener('click', () => selectTribe(tribe));
     layer.appendChild(el);
   });
 }
 
-// ── FILTER ────────────────────────────────────────────────────
-let activeFilter='all';
-document.querySelectorAll('.fpill').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('on'));
-    btn.classList.add('on');
-    activeFilter=btn.dataset.f;
-    tribeObjects3d.forEach(o=>{
-      const t=o.userData.tribe;
-      o.visible=(activeFilter==='all'||t.region===activeFilter);
-    });
-  });
-});
-
-// ── CAMERA LERP STATE ─────────────────────────────────────────
-const camTgt={pos:new THREE.Vector3(0,32,52),look:new THREE.Vector3(0,0,0)};
-let camLerping=false;
-
-function lerpCamera(pos,look){
-  camTgt.pos.copy(pos); camTgt.look.copy(look);
-  camLerping=true;
+// ── CAMERA LERP ───────────────────────────────────────────────
+const camTarget = { pos: new THREE.Vector3(0, 32, 52), look: new THREE.Vector3(0, 0, 0) };
+let camLerping = false;
+function moveCamera(pos, look) {
+  camTarget.pos.copy(pos);
+  camTarget.look.copy(look);
+  camLerping = true;
 }
 
-// ── SELECT TRIBE ──────────────────────────────────────────────
-function selectTribe(tribe){
-  if(!tribe) return;
-  selectedTribe=tribe;
-  controls.autoRotate=false;
+// ── TRIBE SELECTION ───────────────────────────────────────────
+function selectTribe(tribe) {
+  if (!tribe) return;
+  selectedTribe = tribe;
+  controls.autoRotate = false;
 
-  // Highlight fill
-  TRIBES.forEach(t=>{ if(t._fillMat){ t._fillMat.opacity=t===tribe?0.28:0.05; }});
+  // Highlight fills
+  TRIBES.forEach(t => { if (t._fillMat) t._fillMat.opacity = t === tribe ? 0.3 : 0.04; });
 
-  // Show POI markers for this tribe
-  poiMarkers.forEach(m=>{ m.visible=m.userData.tribe===tribe; });
+  // Show POI markers
+  poiMarkers.forEach(m => { m.mesh.visible = m.tribe === tribe; });
 
-  // Camera: zoom into tribe center, from slight angle
-  const [cx,cz]=tribe.center;
-  const cy=mh(cx,cz);
-  lerpCamera(
-    new THREE.Vector3(cx-2, cy+18, cz+22),
+  // Zoom camera
+  const [cx, cz] = tribe.center;
+  const cy = mh(cx, cz);
+  moveCamera(
+    new THREE.Vector3(cx - 2, cy + 18, cz + 22),
     new THREE.Vector3(cx, cy, cz)
   );
 
-  // Build sheet
-  document.getElementById('s-region').textContent=tribe.regionLabel;
-  document.getElementById('s-region').style.color=tribe.color;
-  document.getElementById('s-title').textContent=tribe.name;
-  document.getElementById('s-meta').textContent=`Est. ${tribe.founded}  ·  ${tribe.descendants} descendants  ·  Capital: ${tribe.center}`;
-  document.getElementById('sheet-strip').style.background=
+  // Populate sheet
+  document.getElementById('sreg').textContent = tribe.regionLabel;
+  document.getElementById('sreg').style.color = tribe.color;
+  document.getElementById('stitle').textContent = tribe.name;
+  document.getElementById('smeta').textContent = `Est. ${tribe.founded}  ·  ${tribe.descendants} descendants`;
+  document.getElementById('sstrip').style.background =
     `repeating-linear-gradient(90deg,${tribe.color} 0,${tribe.color} 12px,#B01020 12px,#B01020 24px,${tribe.color} 24px,${tribe.color} 36px,rgba(0,0,0,0.2) 36px,rgba(0,0,0,0.2) 48px)`;
 
-  const body=document.getElementById('s-body');
-  body.innerHTML=`
-    <p class="sheet-summary">${tribe.summary}</p>
-    <div class="sheet-quote">${tribe.motto}</div>
-    ${tribe.places.map((p,i)=>`
-      <div class="poi-card" data-tribe="${tribe.id}" data-poi="${i}" data-px="${p.pos[0]}" data-pz="${p.pos[1]}">
-        <div class="poi-icon">${p.ico}</div>
-        <div class="poi-content">
-          <div class="poi-name">${p.name}</div>
-          <div class="poi-desc">${p.desc}</div>
-          <span class="poi-coords">${p.pos[0].toFixed(1)}°E · ${p.pos[1].toFixed(1)}°N</span>
+  const body = document.getElementById('sbody');
+  body.innerHTML = `
+    <p class="ssum">${tribe.summary}</p>
+    <div class="squote">${tribe.motto}</div>
+    ${tribe.places.map((p, i) => `
+      <div class="pcard" data-px="${p.pos[0]}" data-pz="${p.pos[1]}">
+        <div class="pico">${p.ico}</div>
+        <div>
+          <div class="pname">${p.name}</div>
+          <div class="pdesc">${p.desc}</div>
+          <span class="pcoords">Coord ${p.pos[0].toFixed(1)}, ${p.pos[1].toFixed(1)}</span>
         </div>
       </div>
     `).join('')}
   `;
 
   document.getElementById('sheet').classList.add('open');
-  document.getElementById('back-btn').classList.add('visible');
-  document.getElementById('hint').style.opacity='0';
+  document.getElementById('backbtn').classList.add('vis');
+  document.getElementById('hint').style.opacity = '0';
 
-  // Observe POI cards for scroll-based camera focus
-  setTimeout(setupPoiObserver,200);
+  setTimeout(setupPoiScroll, 250);
 }
 
 // ── POI SCROLL OBSERVER ───────────────────────────────────────
-let poiObserver=null;
-function setupPoiObserver(){
-  if(poiObserver) poiObserver.disconnect();
-  const body=document.getElementById('s-body');
-  poiObserver=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(!e.isIntersecting) return;
+let poiObs = null;
+function setupPoiScroll() {
+  if (poiObs) poiObs.disconnect();
+  const body = document.getElementById('sbody');
+  const cards = body.querySelectorAll('.pcard');
+  poiObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) { e.target.classList.remove('focused'); return; }
       e.target.classList.add('focused');
-      const px=parseFloat(e.target.dataset.px);
-      const pz=parseFloat(e.target.dataset.pz);
-      const py=mh(px,pz);
-      // Camera swings to POI from low angle — shows topography dramatically
-      lerpCamera(
-        new THREE.Vector3(px+4, py+10, pz+12),
+      const px = parseFloat(e.target.dataset.px);
+      const pz = parseFloat(e.target.dataset.pz);
+      const py = mh(px, pz);
+      moveCamera(
+        new THREE.Vector3(px + 3, py + 10, pz + 12),
         new THREE.Vector3(px, py, pz)
       );
     });
-    // Unfocus others
-    document.querySelectorAll('.poi-card').forEach(c=>{
-      const hit=entries.find(e=>e.target===c&&e.isIntersecting);
-      if(!hit) c.classList.remove('focused');
-    });
-  },{root:body, threshold:0.55});
-
-  document.querySelectorAll('.poi-card').forEach(c=>poiObserver.observe(c));
+  }, { root: body, threshold: 0.6 });
+  cards.forEach(c => poiObs.observe(c));
 }
 
-// ── CLOSE / BACK ──────────────────────────────────────────────
-function closePanel(){
-  selectedTribe=null;
+// ── CLOSE ─────────────────────────────────────────────────────
+function closePanel() {
+  selectedTribe = null;
   document.getElementById('sheet').classList.remove('open');
-  document.getElementById('back-btn').classList.remove('visible');
-  document.getElementById('hint').style.opacity='1';
-  TRIBES.forEach(t=>{ if(t._fillMat) t._fillMat.opacity=0.12; });
-  poiMarkers.forEach(m=>m.visible=false);
-  if(poiObserver) poiObserver.disconnect();
-  controls.autoRotate=true;
-  lerpCamera(new THREE.Vector3(0,32,52), new THREE.Vector3(0,0,0));
+  document.getElementById('backbtn').classList.remove('vis');
+  document.getElementById('hint').style.opacity = '1';
+  TRIBES.forEach(t => { if (t._fillMat) t._fillMat.opacity = 0.12; });
+  poiMarkers.forEach(m => m.mesh.visible = false);
+  if (poiObs) poiObs.disconnect();
+  controls.autoRotate = true;
+  moveCamera(new THREE.Vector3(0, 32, 52), new THREE.Vector3(0, 0, 0));
 }
 
-document.getElementById('sheet-close').addEventListener('click',closePanel);
-document.getElementById('back-btn').addEventListener('click',closePanel);
+document.getElementById('sc').addEventListener('click', closePanel);
+document.getElementById('backbtn').addEventListener('click', closePanel);
+
+// ── FILTERS ───────────────────────────────────────────────────
+document.querySelectorAll('.fp').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.fp').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    activeFilter = btn.dataset.f;
+  });
+});
 
 // ── RESIZE ────────────────────────────────────────────────────
-window.addEventListener('resize',()=>{
-  camera.aspect=innerWidth/innerHeight;
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+  renderer.setSize(innerWidth, innerHeight);
 });
 
 // ── ANIMATE ───────────────────────────────────────────────────
-const clock=new THREE.Clock();
-function animate(){
+const clock = new THREE.Clock();
+function animate() {
   requestAnimationFrame(animate);
-  const t=clock.getElapsedTime();
+  const t = clock.getElapsedTime();
 
-  // Camera lerp
-  if(camLerping){
-    camera.position.lerp(camTgt.pos,0.05);
-    controls.target.lerp(camTgt.look,0.05);
-    if(camera.position.distanceTo(camTgt.pos)<0.1) camLerping=false;
+  // Smooth camera lerp
+  if (camLerping) {
+    camera.position.lerp(camTarget.pos, 0.05);
+    controls.target.lerp(camTarget.look, 0.05);
+    if (camera.position.distanceTo(camTarget.pos) < 0.15) camLerping = false;
   }
 
   // Pulse tribe markers
-  TRIBES.forEach((tribe,i)=>{
-    if(tribe._dot){
-      const p=1+Math.sin(t*1.6+i*0.9)*0.3;
-      tribe._dot.material.emissiveIntensity=selectedTribe===tribe?3*p:p;
-      tribe._dot.scale.setScalar(selectedTribe===tribe?1.6*p:p*0.8);
+  TRIBES.forEach((tribe, i) => {
+    if (tribe._dot) {
+      const pulse = 1 + Math.sin(t * 1.6 + i * 0.9) * 0.3;
+      tribe._dot.material.emissiveIntensity = selectedTribe === tribe ? 3 * pulse : pulse;
+      tribe._dot.scale.setScalar(selectedTribe === tribe ? 1.5 * pulse : 0.9 * pulse);
     }
   });
 
-  poiMarkers.forEach((m,i)=>{
-    m.material.emissiveIntensity=1+Math.sin(t*2+i*0.5)*0.5;
+  // Pulse POI markers
+  poiMarkers.forEach((pm, i) => {
+    pm.mesh.material.emissiveIntensity = 1.5 + Math.sin(t * 2 + i * 0.5) * 0.6;
   });
 
-  terrain.position.y=Math.sin(t*0.2)*0.06;
-  wire.position.y=terrain.position.y+0.04;
-  sun.intensity=5+Math.sin(t*0.3)*0.5;
+  terrain.position.y = Math.sin(t * 0.2) * 0.06;
+  wireMesh.position.y = terrain.position.y + 0.04;
+  sunLight.intensity = 6 + Math.sin(t * 0.3) * 0.5;
 
   renderLabels();
   controls.update();
-  renderer.render(scene,camera);
+  renderer.render(scene, camera);
 }
+
 animate();
+
+} catch(e) {
+  showErr(e.message + '\n' + (e.stack || '').split('\n').slice(0,3).join('\n'));
+}
 </script>
 </body>
 </html>
