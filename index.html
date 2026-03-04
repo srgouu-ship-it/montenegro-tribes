@@ -118,13 +118,13 @@
     
     // Theme based on day of week
     const themes = [
-        { bg: 0x050508, fog: 0x050508, mount: 0x223344, accent: 0x4488ff }, // Sun
-        { bg: 0x080505, fog: 0x080505, mount: 0x332222, accent: 0xff4444 }, // Mon
-        { bg: 0x050805, fog: 0x050805, mount: 0x223322, accent: 0x44ff88 }, // Tue
-        { bg: 0x070707, fog: 0x070707, mount: 0x2a2a2a, accent: 0xC9A227 }, // Wed
-        { bg: 0x050708, fog: 0x050708, mount: 0x222a33, accent: 0x00d4ff }, // Thu
-        { bg: 0x080507, fog: 0x080507, mount: 0x33222a, accent: 0xff00d4 }, // Fri
-        { bg: 0x080705, fog: 0x080705, mount: 0x332a22, accent: 0xffaa00 }  // Sat
+        { bg: 0x0a0e1a, fog: 0x0a0e1a, mount: 0x1a2a4a, accent: 0x4488ff }, // Sun - deep blue night
+        { bg: 0x150a0a, fog: 0x150a0a, mount: 0x3a1a1a, accent: 0xff5555 }, // Mon - blood red dusk
+        { bg: 0x0a180a, fog: 0x0a180a, mount: 0x1a3a1a, accent: 0x44ff99 }, // Tue - forest emerald
+        { bg: 0x18140a, fog: 0x18140a, mount: 0x3a2a0a, accent: 0xC9A227 }, // Wed - golden dusk
+        { bg: 0x0a1218, fog: 0x0a1218, mount: 0x0a2235, accent: 0x00d4ff }, // Thu - arctic blue
+        { bg: 0x180a14, fog: 0x180a14, mount: 0x350a25, accent: 0xff44cc }, // Fri - magenta night
+        { bg: 0x18100a, fog: 0x18100a, mount: 0x3a2010, accent: 0xff8800 }  // Sat - amber fire
     ];
     const theme = themes[today.getDay()];
     scene.background = new THREE.Color(theme.bg);
