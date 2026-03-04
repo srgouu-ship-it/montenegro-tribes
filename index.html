@@ -9,7 +9,7 @@
   <style>
     :root {
       --crimson:#B01020; --gold:#C9A227; --gold2:#E8C84A;
-      --cream:#F0E5CC; --dark:#0B0705; --glass:rgba(10,6,4,0.92); --muted:#7A6858;
+      --cream:#F0E5CC; --dark:#0B0705; --glass:rgba(10,6,4,0.95); --muted:#7A6858;
     }
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
     html{ width:100%; height:100%; background:var(--dark); }
@@ -18,127 +18,89 @@
     #c{position:fixed;inset:0;display:block;z-index:1;}
 
     #hud{
-      position:fixed;top:0;left:0;right:0;z-index:50;
-      padding:16px 24px;display:flex;align-items:center;justify-content:space-between;
-      background:linear-gradient(to bottom,rgba(11,7,5,.96) 60%,transparent);
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      padding:20px 28px;display:flex;align-items:center;justify-content:space-between;
+      background:linear-gradient(to bottom,rgba(11,7,5,.9) 20%,transparent);
       pointer-events:none;
     }
-    .hud-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--gold);}
+    .hud-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--gold);}
     .hud-title span{color:var(--crimson);}
-    .hud-hint{font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);opacity:0.8;}
 
-    #filters{
-      position:fixed;top:54px;left:50%;transform:translateX(-50%);
-      z-index:50;display:flex;gap:6px;pointer-events:auto;
-    }
-    .fp{
-      background:rgba(10,6,4,.82);border:1px solid rgba(201,162,39,.22);
-      color:var(--muted);padding:5px 16px;border-radius:999px;
-      font-size:.68rem;letter-spacing:1.2px;text-transform:uppercase;
-      cursor:pointer;transition:all .2s;white-space:nowrap;
-    }
-    .fp:hover,.fp.on{border-color:var(--gold);color:var(--gold);background:rgba(201,162,39,.1);}
-
-    #labels{position:fixed;inset:0;z-index:30;pointer-events:none;}
+    #labels{position:fixed;inset:0;z-index:80;pointer-events:none;}
     .tlabel{
       position:absolute; transform:translate(-50%,-100%);
       text-align:center; pointer-events:auto; cursor:pointer;
-      z-index:30;
     }
-    .tdot{width:10px; height:10px; border-radius:50%; margin:0 auto 4px; box-shadow:0 0 10px currentColor; transition:transform 0.2s;}
-    .tname{font-size:.6rem; letter-spacing:1.5px; text-transform:uppercase; font-weight:600; white-space:nowrap;}
-    .tlabel:hover .tdot{transform:scale(1.5);}
+    .tdot{width:12px; height:12px; border-radius:50%; margin:0 auto 6px; box-shadow:0 0 12px currentColor; border:2px solid #fff;}
+    .tname{font-size:.65rem; letter-spacing:1.8px; text-transform:uppercase; font-weight:700; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.8);}
 
     #sheet{
-      position:fixed;bottom:0;left:0;right:0;z-index:60;
+      position:fixed;bottom:0;left:0;right:0;z-index:120;
       height:58vh;transform:translateY(100%);
-      transition:transform .5s cubic-bezier(0.4,0,.2,1);
+      transition:transform .5s cubic-bezier(0.19,1,0.22,1);
       display:flex;flex-direction:column;
-      background:var(--glass);backdrop-filter:blur(30px);
-      border-top:1px solid rgba(201,162,39,.2);border-radius:20px 20px 0 0;
+      background:var(--glass);backdrop-filter:blur(40px);
+      border-top:1px solid rgba(201,162,39,.3);
     }
-    #sheet.open{transform:translateY(0); shadow: 0 -20px 50px rgba(0,0,0,0.8); }
+    #sheet.open{transform:translateY(0); box-shadow: 0 -20px 80px rgba(0,0,0,0.9); }
 
-    .sstrip{
-      height:6px;flex-shrink:0;border-radius:20px 20px 0 0;
-      background:repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 12px,var(--crimson) 12px,var(--crimson) 24px,var(--gold) 24px,var(--gold) 36px,rgba(201,162,39,.1) 36px,rgba(201,162,39,.1) 48px);
-    }
     .shead{
-      flex-shrink:0;padding:18px 28px 12px;
+      flex-shrink:0;padding:24px 32px 12px;
       display:flex;align-items:flex-start;justify-content:space-between;
-      border-bottom:1px solid rgba(201,162,39,.15);
+      border-bottom:1px solid rgba(255,255,255,.05);
     }
-    .sreg{font-size:.65rem;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:6px;}
-    .stitle{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#fff;line-height:1;}
-    .smeta{font-size:.75rem;color:var(--muted);margin-top:6px;}
-    #sc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);
-        width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:.8rem;flex-shrink:0;margin-left:12px;}
+    .stitle{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;color:#fff;line-height:1;}
+    #sc{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;
+        width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:1rem;flex-shrink:0;}
 
-    .sbody{ flex:1; overflow-y:auto; padding:0 28px 60px; scroll-behavior:smooth; }
-    .sbody::-webkit-scrollbar{width:4px;}
-    .sbody::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px;}
-
-    .ssum{padding:24px 0;font-size:.95rem;line-height:1.8;color:#a09080;}
-    .squote{margin:10px 0 30px;border-left:4px solid var(--crimson);padding:12px 20px;background:rgba(176,16,32,.08);font-style:italic;color:#b0a090;font-size:.9rem;line-height:1.7;}
+    .sbody{ flex:1; overflow-y:auto; padding:0 32px 60px; scroll-behavior:smooth; }
+    .ssum{padding:24px 0;font-size:1rem;line-height:1.8;color:#d0c0b0;}
 
     .pcard{
-      padding:24px 0;border-bottom:1px solid rgba(255,255,255,.05);
-      display:flex;gap:20px;align-items:flex-start;
-      transition:all .4s; opacity:.4;
+      padding:28px 0;border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;gap:24px;align-items:flex-start;
+      transition:all .4s; opacity:.3; transform: scale(0.98);
     }
-    .pcard.focused{opacity:1; transform: translateX(10px); }
-    .pico{font-size:2.2rem;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(201,162,39,.3));}
-    .pname{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:6px;}
-    .pdesc{font-size:.88rem;line-height:1.7;color:#8a7a6a;}
+    .pcard.focused{opacity:1; transform: scale(1.05) translateX(10px); }
+    .pico{font-size:2.5rem;flex-shrink:0;filter:drop-shadow(0 0 15px rgba(201,162,39,.4));}
+    .pname{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:8px;}
+    .pdesc{font-size:.95rem;line-height:1.7;color:#b0a090;}
 
     #backbtn{
-      position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:40;
-      background:var(--crimson); border:none; color:#fff; font-size:.7rem; font-weight:700;
-      letter-spacing:2px; text-transform:uppercase; padding:10px 24px; border-radius:999px; cursor:pointer;
-      opacity:0; pointer-events:none; transition: all 0.3s; box-shadow: 0 10px 30px rgba(176,16,32,0.4);
+      position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:110;
+      background:var(--crimson); border:none; color:#fff; font-size:.75rem; font-weight:800;
+      letter-spacing:2px; text-transform:uppercase; padding:12px 32px; border-radius:999px; cursor:pointer;
+      opacity:0; pointer-events:none; transition: all 0.3s; box-shadow: 0 15px 40px rgba(176,16,32,0.5);
     }
     #backbtn.vis{opacity:1;pointer-events:auto;}
-    #backbtn:hover { background: var(--crimson2); transform: translateX(-50%) translateY(-2px); }
 
-    #loading{position:fixed;inset:0;z-index:100;background:var(--dark);display:flex;align-items:center;justify-content:center;transition:opacity .5s;}
+    #status{position:fixed;bottom:10px;right:10px;z-index:999;font-family:monospace;font-size:9px;color:rgba(255,255,255,0.4);}
+    #loading{position:fixed;inset:0;z-index:1000;background:var(--dark);display:flex;align-items:center;justify-content:center;transition:opacity .5s;}
     #loading.done{opacity:0;pointer-events:none;}
-    .spinner{width:40px;height:40px;border:3px solid rgba(201,162,39,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-
-    #diag{position:fixed;bottom:10px;left:10px;z-index:999;font-family:monospace;font-size:10px;color:rgba(255,255,255,0.3);pointer-events:none;}
   </style>
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div></div>
-<div id="diag">FPS: -- | Engine: --</div>
+<div id="loading">⛰️ RENDERING MOUNTAINS...</div>
+<div id="status">INIT...</div>
 <canvas id="c"></canvas>
 
 <div id="hud">
   <div class="hud-title">Plemena <span>Crne Gore</span></div>
-  <div class="hud-hint" id="hint">Drag to rotate · Click a tribe</div>
-</div>
-
-<div id="filters">
-  <button class="fp on" data-f="all">All</button>
-  <button class="fp" data-f="old-cg">Stara CG</button>
-  <button class="fp" data-f="brda">Brda</button>
-  <button class="fp" data-f="herc">Hercegovina</button>
-  <button class="fp" data-f="coast">Primorje</button>
+  <div class="hud-hint" id="hint">CLICK TRIBE TO ZOOM</div>
 </div>
 
 <div id="labels"></div>
 
 <div id="sheet">
-  <div class="sstrip" id="sstrip"></div>
   <div class="shead">
-    <div><div class="sreg" id="sreg"></div><div class="stitle" id="stitle"></div><div class="smeta" id="smeta"></div></div>
+    <div><div class="stitle" id="stitle"></div></div>
     <button id="sc">✕</button>
   </div>
   <div class="sbody" id="sbody"></div>
 </div>
 
-<button id="backbtn">Return to Full Map</button>
+<button id="backbtn">Full Map</button>
 
 <script type="importmap">
 {
@@ -153,349 +115,150 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+window._ERRS = [];
+window.onerror = (m) => window._ERRS.push(m);
+
 const TRIBES = [
-  {
-    id:'vasojevici', name:'Vasojevići', region:'brda', regionLabel:'Brda · Highland Confederation',
-    color:'#4A7FC1', motto:'\"Vasojevići ne prodaju se za zlato\"',
-    center:[9, 8.5], founded:'~15th c.', descendants:'200,000+',
-    summary:'The largest tribe in Montenegro. Guardians of the northeastern frontier at the foot of Komovi and Prokletije.',
-    polygon:[[5,5],[13,5],[13,13],[8,13],[5,10]],
-    places:[
-      {ico:'⛰️',name:'Komovi',desc:'Sacred peaks rising to 2,487m — the soul of the Vasojevići.',pos:[10,10]},
-      {ico:'🏘️',name:'Lijeva Rijeka',desc:'The ancestral cradle where the tribe was born.',pos:[9,7.5]},
-      {ico:'🏔️',name:'Prokletije',desc:'The \"Accursed Mountains\" — a wilderness that defied empires.',pos:[11.5,6.5]},
-    ]
-  },
-  {
-    id:'rovcani', name:'Rovčani & Morača', region:'brda', regionLabel:'Brda · Canyon Dwellers',
-    color:'#9B6BFF', motto:'\"Iz Rovaca bez sramote\"',
-    center:[4, 7.5], founded:'~14th c.', descendants:'35,000+',
-    summary:'Masters of the Morača River gorge. Their isolation bred poets, monks, and fierce fighters.',
-    polygon:[[1,5],[6,5],[6,11],[3,13],[0,11],[0,6]],
-    places:[
-      {ico:'⛪',name:'Morača Monastery',desc:'Founded in 1252, a spiritual beacon in the mountains.',pos:[4,7]},
-      {ico:'🏞️',name:'Morača Canyon',desc:'Sheer 1,000m walls carved by turquoise waters.',pos:[4.5,6]},
-      {ico:'⛷️',name:'Kolašin',desc:'The highland gateway, once a military watchtower.',pos:[5,7.5]},
-    ]
-  },
-  {
-    id:'drobnjaci', name:'Drobnjaci', region:'herc', regionLabel:'Stara Hercegovina · Plateau Warriors',
-    color:'#4CAF7D', motto:'\"Drobnjak — hajduk od kolevke\"',
-    center:[0, 10.5], founded:'~14th c.', descendants:'40,000+',
-    summary:'Warriors of the high Durmitor plateau, overlooking the deepest canyon in Europe.',
-    polygon:[[-4,7],[2,7],[2,13],[-1,13],[-5,11]],
-    places:[
-      {ico:'🏔️',name:'Durmitor',desc:'UNESCO World Heritage massif — the rooftop of Montenegro.',pos:[0,11]},
-      {ico:'🌊',name:'Tara Canyon',desc:'1,300m deep — the \"Tear of Europe\".',pos:[1,10]},
-      {ico:'❄️',name:'Žabljak',desc:'At 1,456m, the highest town in the Balkans.',pos:[-0.5,12]},
-    ]
-  },
-  {
-    id:'kuci', name:'Kuči', region:'brda', regionLabel:'Brda · Eastern Gate',
-    color:'#5B9BD5', motto:'\"Kuči se ne daju\"',
-    center:[5.5, 0.5], founded:'~15th c.', descendants:'40,000+',
-    summary:'Guardians of the strategic highlands north of Podgorica.',
-    polygon:[[3,-4],[9,-4],[11,2],[8,5],[4,5],[2,1]],
-    places:[
-      {ico:'🗻',name:'Kučka Krajina',desc:'A karst labyrinth that stopped every Ottoman expedition.',pos:[5.5,2]},
-      {ico:'🏘️',name:'Tuzi',desc:'The central border settlement, a hub of highland trade.',pos:[5,-3]},
-      {ico:'⚔️',name:'Highland Ridges',desc:'The site of countless last stands against the Ottomans.',pos:[7.5,0]},
-    ]
-  },
-  {
-    id:'bjelopavlici', name:'Bjelopavlići', region:'brda', regionLabel:'Brda · Valley Clan',
-    color:'#2E8BC0', motto:'\"Bijeli Pavle — korijen plemenski\"',
-    center:[-1.5, 2.5], founded:'~15th c.', descendants:'50,000+',
-    summary:'The tribe of the fertile Zeta plain. Cultivators and statesmen.',
-    polygon:[[-5,-1],[0,-1],[0,5],[-3,6],[-6,3]],
-    places:[
-      {ico:'🌾',name:'Bjelopavlić Plain',desc:'One of the few patches of fertile soil in the mountains.',pos:[-1.5,2]},
-      {ico:'🏙️',name:'Danilovgrad',desc:'A royal planned city founded by Prince Danilo I.',pos:[-0.5,0.5]},
-      {ico:'🏛️',name:'Zeta Churches',desc:'Ancient stone sanctuaries dotting the valley floor.',pos:[-3,3.5]},
-    ]
-  },
-  {
-    id:'niksicci', name:'Nikšić & Banjani', region:'herc', regionLabel:'Stara Hercegovina · Plateau Clans',
-    color:'#2E8B57', motto:'\"Nikšić — grad pod krilima\"',
-    center:[-5.5, 4], founded:'~14th c.', descendants:'60,000+',
-    summary:'Clans of the southwestern plateau, centered on the fortress of Onogošt.',
-    polygon:[[-9,1],[-3,1],[-3,8],[-6,9],[-10,6]],
-    places:[
-      {ico:'🏙️',name:'Nikšić',desc:'The industrial heart and former frontier fortress.',pos:[-5.5,3.5]},
-      {ico:'⛪',name:'Ostrog Monastery',desc:'The miracle on the cliff, Montenegro\\'s most sacred site.',pos:[-4,2.5]},
-      {ico:'🪨',name:'Banjani',desc:'High karst plateau scattered with ancient tombstones.',pos:[-7,5]},
-    ]
-  },
-  {
-    id:'njegusis', name:'Njeguši & Old Montenegro', region:'old-cg', regionLabel:'Stara Crna Gora · The Heartland',
-    color:'#C41E3A', motto:'\"Čojstvo i Junaštvo\"',
-    center:[-3.5, -1.5], founded:'~13th c.', descendants:'100,000+',
-    summary:'The historic core. From Lovćen mountain, the Petrović dynasty forged a nation.',
-    polygon:[[-8,-5],[-2,-5],[-2,1],[-5,2],[-9,0],[-9,-4]],
-    places:[
-      {ico:'👑',name:'Cetinje',desc:'The royal capital — the throne of Montenegro\\'s spirit.',pos:[-3.5,-3]},
-      {ico:'⛰️',name:'Lovćen',desc:'The sacred mountain where the great ruler Njegoš rests.',pos:[-4.5,-1]},
-      {ico:'🏠',name:'Njeguši',desc:'The cradle of the dynasty and famous smoked ham.',pos:[-5,-0.5]},
-    ]
-  },
-  {
-    id:'pastrovici', name:'Paštrovići', region:'coast', regionLabel:'Primorje · Adriatic Warriors',
-    color:'#C9A227', motto:'\"Paštrovića zemlja — more i gora\"',
-    center:[-5.5, -7.5], founded:'~14th c.', descendants:'25,000+',
-    summary:'The coastal tribe of Budva. Sailors and swordsmen of the Adriatic.',
-    polygon:[[-9,-11],[-4,-11],[-4,-8],[-7,-7],[-10,-9]],
-    places:[
-      {ico:'🏝️',name:'Sveti Stefan',desc:'The iconic island fortress turned Mediterranean jewel.',pos:[-5,-8]},
-      {ico:'🌊',name:'Budva Old Town',desc:'2,500 years of history within Venetian walls.',pos:[-6,-8.5]},
-      {ico:'⛪',name:'Praskvica',desc:'A thousand-year-old spiritual anchor on the cliffs.',pos:[-6.5,-7]},
-    ]
-  },
-  {
-    id:'grbalj', name:'Grbalj', region:'coast', regionLabel:'Primorje · Kotor Bay',
-    color:'#B8860B', motto:'\"Grbalj — ključ od Boke\"',
-    center:[-9, -5.5], founded:'~13th c.', descendants:'15,000+',
-    summary:'The hinterland of Kotor Bay, guarding the mountain passes to the sea.',
-    polygon:[[-13,-8],[-9,-8],[-9,-4],[-12,-4],[-13,-6]],
-    places:[
-      {ico:'🏰',name:'Kotor',desc:'The medieval fortress city, UNESCO World Heritage.',pos:[-10,-6.5]},
-      {ico:'⛵',name:'Boka Bay',desc:'The southernmost fjord in Europe, a world unto itself.',pos:[-10.5,-5.5]},
-      {ico:'⛪',name:'St. Tryphon',desc:'The 12th-century Romanesque heart of the bay.',pos:[-10,-5]},
-    ]
-  }
+  { id:'vasojevici', name:'Vasojevići', color:'#4A7FC1', center:[9, 8.5], summary:'The largest tribe in Montenegro. Guardians of the northeastern frontier.', places:[{ico:'⛰️',name:'Komovi',desc:'Sacred peaks rising to 2,487m.',pos:[10,10]},{ico:'🏘️',name:'Lijeva Rijeka',desc:'The ancestral cradle.',pos:[9,7.5]}] },
+  { id:'rovcani', name:'Rovčani & Morača', color:'#9B6BFF', center:[4, 7.5], summary:'Masters of the Morača River gorge.', places:[{ico:'⛪',name:'Morača Monastery',desc:'Founded in 1252.',pos:[4,7]},{ico:'🏞️',name:'Morača Canyon',desc:'Sheer 1,000m walls.',pos:[4.5,6]}] },
+  { id:'drobnjaci', name:'Drobnjaci', color:'#4CAF7D', center:[0, 10.5], summary:'Warriors of the high Durmitor plateau.', places:[{ico:'🏔️',name:'Durmitor',desc:'UNESCO World Heritage massif.',pos:[0,11]},{ico:'🌊',name:'Tara Canyon',desc:'1,300m deep.',pos:[1,10]}] },
+  { id:'njegusis', name:'Njeguši', color:'#C41E3A', center:[-3.5, -1.5], summary:'The historic core. Birthplace of the Petrović dynasty.', places:[{ico:'👑',name:'Cetinje',desc:'The royal capital.',pos:[-3.5,-3]},{ico:'⛰️',name:'Lovćen',desc:'The sacred mountain.',pos:[-4.5,-1]}] },
+  { id:'pastrovici', name:'Paštrovići', color:'#C9A227', center:[-5.5, -7.5], summary:'The coastal tribe of Budva.', places:[{ico:'🏝️',name:'Sveti Stefan',desc:'Fortified island village.',pos:[-5,-8]},{ico:'🌊',name:'Budva',desc:'2,500 years of history.',pos:[-6,-8.5]}] }
 ];
 
-// ── INIT ──────────────────────────────────────────────────────
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.4;
+try {
+  const canvas = document.getElementById('c');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0B0705);
-scene.fog = new THREE.FogExp2(0x0B0705, 0.012);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0B0705);
+  scene.fog = new THREE.FogExp2(0x0B0705, 0.015);
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 500);
-camera.position.set(0, 35, 55);
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 40, 60);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.4;
-controls.maxPolarAngle = Math.PI / 2.2;
-controls.minDistance = 20;
-controls.maxDistance = 100;
-
-// ── LIGHTS (Brighter) ─────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 2.5));
-const sun = new THREE.DirectionalLight(0xfff0dd, 5);
-sun.position.set(20, 50, 20);
-scene.add(sun);
-const fill = new THREE.DirectionalLight(0x4a7fc1, 3);
-fill.position.set(-30, 20, -10);
-scene.add(fill);
-
-// ── TERRAIN ───────────────────────────────────────────────────
-function hash(n) { return Math.sin(n * 127.1) * 43758.5453; }
-function fract(n) { return n - Math.floor(n); }
-function n2(x, y) {
-  const ix = Math.floor(x), iy = Math.floor(y), fx = fract(x), fy = fract(y);
-  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
-  const a = fract(hash(ix + iy * 57));
-  const b = fract(hash(ix + 1 + iy * 57));
-  const c = fract(hash(ix + (iy + 1) * 57));
-  const d = fract(hash(ix + 1 + (iy + 1) * 57));
-  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
-}
-function fbm(x, y) {
-  let v = 0, a = 0.5, f = 1;
-  for (let i = 0; i < 6; i++) { v += n2(x * f, y * f) * a; a *= 0.5; f *= 2.0; }
-  return v;
-}
-function mh(x, z) {
-  const nx = (x + 14) / 28, nz = (z + 14) / 28;
-  let h = fbm(nx * 3, nz * 3) * 12;
-  if (z > 3) h += Math.pow(Math.max(0, (z - 3) / 10), 1.5) * 12;
-  const lov = Math.sqrt((x + 4) ** 2 + (z + 2) ** 2);
-  if (lov < 4) h += (4 - lov) * 1.5;
-  const lak = Math.sqrt((x - 3) ** 2 + (z + 6) ** 2);
-  if (lak < 5) h -= (5 - lak) * 1.5;
-  const edge = Math.max(0, 1 - (Math.abs(x) / 13.8)) * Math.max(0, 1 - (Math.abs(z) / 13.8));
-  return Math.max(0, h * edge);
-}
-
-const RES = 160, SZ = 26;
-const geo = new THREE.PlaneGeometry(SZ * 2, SZ * 2, RES, RES);
-const pos = geo.attributes.position;
-const colors = new Float32Array(pos.count * 3);
-for (let i = 0; i < pos.count; i++) {
-  const x = pos.getX(i), z = pos.getY(i);
-  const h = mh(x, z);
-  pos.setZ(i, h);
-  const t = Math.min(1, h / 14);
-  const c = h < 0.2 ? new THREE.Color(0x0d2233) : new THREE.Color(0x3C2A18).lerp(new THREE.Color(0xD8D0C0), t);
-  colors[i*3]=c.r; colors[i*3+1]=c.g; colors[i*3+2]=c.b;
-}
-geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-geo.computeVertexNormals();
-
-const terrain = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 }));
-terrain.rotation.x = -Math.PI / 2;
-scene.add(terrain);
-
-// ── TRIBE ELEMENTS ────────────────────────────────────────────
-const clickObjects = [];
-const poiMeshes = [];
-
-TRIBES.forEach(tribe => {
-  const [cx, cz] = tribe.center;
-  const cy = mh(cx, cz) + 0.5;
-
-  // Invisible hit box
-  const hit = new THREE.Mesh(new THREE.SphereGeometry(2, 6, 6), new THREE.MeshBasicMaterial({ visible: false }));
-  hit.position.set(cx, cy + 1, cz);
-  hit.userData = { tribe };
-  scene.add(hit);
-  clickObjects.push(hit);
-
-  // Glow dot
-  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), new THREE.MeshStandardMaterial({ color: tribe.color, emissive: tribe.color, emissiveIntensity: 2.5 }));
-  dot.position.set(cx, cy, cz);
-  scene.add(dot);
-  tribe._dot = dot;
-
-  // Border (simplified)
-  const bPts = [];
-  const poly = [...tribe.polygon, tribe.polygon[0]];
-  for (let i = 0; i < poly.length - 1; i++) {
-    const [x0, z0] = poly[i], [x1, z1] = poly[i + 1];
-    for (let s = 0; s <= 8; s++) {
-      const t = s / 8, xi = x0 + (x1 - x0) * t, zi = z0 + (z1 - z0) * t;
-      bPts.push(new THREE.Vector3(xi, mh(xi, zi) + 1.8, zi));
-    }
-  }
-  const border = new THREE.Line(new THREE.BufferGeometry().setFromPoints(bPts), new THREE.LineBasicMaterial({ color: tribe.color, opacity: 0.8, transparent: true }));
-  scene.add(border);
-
-  // POIs
-  tribe.places.forEach(p => {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshStandardMaterial({ color: tribe.color, emissive: tribe.color, emissiveIntensity: 2 }));
-    m.position.set(p.pos[0], mh(p.pos[0], p.pos[1]) + 0.8, p.pos[1]);
-    m.visible = false;
-    scene.add(m);
-    poiMeshes.push({ mesh: m, tribe });
-  });
-});
-
-// ── INTERACTION ───────────────────────────────────────────────
-const ray = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let selected = null, camLerp = null;
-
-window.addEventListener('click', e => {
-  if(selected) return;
-  mouse.x = (e.clientX / innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
-  ray.setFromCamera(mouse, camera);
-  const hits = ray.intersectObjects(clickObjects);
-  if (hits.length) select(hits[0].object.userData.tribe);
-});
-
-function select(tribe) {
-  selected = tribe;
-  controls.autoRotate = false;
-  poiMeshes.forEach(m => m.mesh.visible = m.tribe === tribe);
-  camLerp = { pos: new THREE.Vector3(tribe.center[0] - 2, mh(tribe.center[0], tribe.center[1]) + 18, tribe.center[1] + 20), look: new THREE.Vector3(tribe.center[0], mh(tribe.center[0], tribe.center[1]), tribe.center[1]) };
-
-  document.getElementById('sreg').textContent = tribe.regionLabel;
-  document.getElementById('sreg').style.color = tribe.color;
-  document.getElementById('stitle').textContent = tribe.name;
-  document.getElementById('smeta').textContent = `Est. ${tribe.founded} · ${tribe.descendants} descendants`;
-  document.getElementById('sstrip').style.background = `var(--gold)`;
-
-  document.getElementById('sbody').innerHTML = `
-    <p class="ssum">${tribe.summary}</p>
-    <div class="squote">${tribe.motto}</div>
-    ${tribe.places.map(p => `
-      <div class="pcard" data-x="${p.pos[0]}" data-z="${p.pos[1]}">
-        <div class="pico">${p.ico}</div>
-        <div><div class="pname">${p.name}</div><div class="pdesc">${p.desc}</div></div>
-      </div>
-    `).join('')}
-  `;
-  document.getElementById('sheet').classList.add('open');
-  document.getElementById('backbtn').classList.add('vis');
-  setTimeout(setupPOIScroll, 300);
-}
-
-function setupPOIScroll() {
-  const body = document.getElementById('sbody');
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('focused');
-        const px = parseFloat(e.target.dataset.x), pz = parseFloat(e.target.dataset.z);
-        camLerp = { pos: new THREE.Vector3(px + 4, mh(px, pz) + 10, pz + 12), look: new THREE.Vector3(px, mh(px, pz), pz) };
-      } else e.target.classList.remove('focused');
-    });
-  }, { root: body, threshold: 0.6 });
-  body.querySelectorAll('.pcard').forEach(c => obs.observe(c));
-}
-
-document.getElementById('sc').onclick = document.getElementById('backbtn').onclick = () => {
-  selected = null;
-  document.getElementById('sheet').classList.remove('open');
-  document.getElementById('backbtn').classList.remove('vis');
-  poiMeshes.forEach(m => m.mesh.visible = false);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
   controls.autoRotate = true;
-  camLerp = { pos: new THREE.Vector3(0, 35, 55), look: new THREE.Vector3(0, 0, 0) };
-};
+  controls.autoRotateSpeed = 0.5;
 
-// ── ANIMATE ───────────────────────────────────────────────────
-let frame = 0;
-function animate() {
-  requestAnimationFrame(animate);
-  frame++;
-  const t = Date.now() * 0.001;
+  scene.add(new THREE.AmbientLight(0xffffff, 2.0));
+  const sun = new THREE.DirectionalLight(0xffffff, 4);
+  sun.position.set(10, 50, 10);
+  scene.add(sun);
 
-  if (camLerp) {
-    camera.position.lerp(camLerp.pos, 0.05);
-    controls.target.lerp(camLerp.look, 0.05);
-    if (camera.position.distanceTo(camLerp.pos) < 0.1) camLerp = null;
+  // Simple Height
+  function getHeight(x, z) {
+    const d = Math.sqrt(x*x + z*z);
+    let h = (Math.sin(x*0.2) * Math.cos(z*0.2) * 5) + 5;
+    if (z > 5) h += (z-5)*1.2;
+    if (x < -5) h += (-5-x)*0.8;
+    return Math.max(0, h * Math.max(0, 1 - d/25));
   }
 
-  TRIBES.forEach((tr, i) => {
-    if (tr._dot) {
-      const p = 1 + Math.sin(t * 1.8 + i) * 0.3;
-      tr._dot.scale.setScalar(selected === tr ? p * 1.8 : p);
+  const geo = new THREE.PlaneGeometry(50, 50, 80, 80);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    pos.setZ(i, getHeight(pos.getX(i), pos.getY(i)));
+  }
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({ color: 0x443322, wireframe: false, roughness: 0.8 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  scene.add(mesh);
+
+  const wire = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xC9A227, wireframe: true, transparent: true, opacity: 0.1 }));
+  wire.rotation.x = -Math.PI / 2;
+  wire.position.y = 0.1;
+  scene.add(wire);
+
+  const tribeDots = [];
+  TRIBES.forEach(t => {
+    const [x, z] = t.center;
+    const y = getHeight(x, z) + 0.5;
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 12), new THREE.MeshStandardMaterial({ color: t.color, emissive: t.color, emissiveIntensity: 2 }));
+    dot.position.set(x, y, z);
+    dot.userData = { tribe: t };
+    scene.add(dot);
+    tribeDots.push(dot);
+  });
+
+  let selected = null, camLerp = null;
+
+  window.addEventListener('click', e => {
+    if(selected) return;
+    const m = new THREE.Vector2((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(m, camera);
+    const hits = ray.intersectObjects(tribeDots);
+    if(hits.length) select(hits[0].object.userData.tribe);
+  });
+
+  function select(tribe) {
+    selected = tribe;
+    controls.autoRotate = false;
+    camLerp = { pos: new THREE.Vector3(tribe.center[0], getHeight(tribe.center[0], tribe.center[1])+15, tribe.center[1]+20), look: new THREE.Vector3(tribe.center[0], 0, tribe.center[1]) };
+    document.getElementById('stitle').textContent = tribe.name;
+    document.getElementById('sbody').innerHTML = `<p class="ssum">${tribe.summary}</p>${tribe.places.map(p => `<div class="pcard" data-x="${p.pos[0]}" data-z="${p.pos[1]}"><div class="pico">${p.ico}</div><div><div class="pname">${p.name}</div><div class="pdesc">${p.desc}</div></div></div>`).join('')}`;
+    document.getElementById('sheet').classList.add('open');
+    document.getElementById('backbtn').classList.add('vis');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if(e.isIntersecting) {
+          e.target.classList.add('focused');
+          const px = parseFloat(e.target.dataset.x), pz = parseFloat(e.target.dataset.z);
+          camLerp = { pos: new THREE.Vector3(px+4, getHeight(px,pz)+10, pz+12), look: new THREE.Vector3(px, getHeight(px,pz), pz) };
+        } else e.target.classList.remove('focused');
+      });
+    }, { root: document.getElementById('sbody'), threshold: 0.6 });
+    document.querySelectorAll('.pcard').forEach(c => obs.observe(c));
+  }
+
+  document.getElementById('sc').onclick = document.getElementById('backbtn').onclick = () => {
+    selected = null;
+    document.getElementById('sheet').classList.remove('open');
+    document.getElementById('backbtn').classList.remove('vis');
+    controls.autoRotate = true;
+    camLerp = { pos: new THREE.Vector3(0, 40, 60), look: new THREE.Vector3(0, 0, 0) };
+  };
+
+  let frame = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    frame++;
+    if(camLerp) {
+      camera.position.lerp(camLerp.pos, 0.05);
+      controls.target.lerp(camLerp.look, 0.05);
     }
+    const layer = document.getElementById('labels');
+    layer.innerHTML = '';
+    TRIBES.forEach(t => {
+      if(selected && selected !== t) return;
+      const v = new THREE.Vector3(t.center[0], getHeight(t.center[0], t.center[1])+2, t.center[1]).project(camera);
+      if(v.z > 1) return;
+      const el = document.createElement('div');
+      el.className = 'tlabel'; el.style.left = (v.x*0.5+0.5)*innerWidth+'px'; el.style.top = (-v.y*0.5+0.5)*innerHeight+'px';
+      el.style.color = t.color; el.innerHTML = `<div class="tdot" style="background:${t.color}"></div><div class="tname">${t.name}</div>`;
+      el.onclick = () => select(t);
+      layer.appendChild(el);
+    });
+    controls.update();
+    renderer.render(scene, camera);
+    if(frame === 5) document.getElementById('loading').classList.add('done');
+    document.getElementById('status').textContent = `F: ${frame} | E: r160`;
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
   });
 
-  const layer = document.getElementById('labels');
-  layer.innerHTML = '';
-  TRIBES.forEach(tr => {
-    if (selected && selected !== tr) return;
-    const v = new THREE.Vector3(tr.center[0], mh(tr.center[0], tr.center[1]) + 2, tr.center[1]).project(camera);
-    if (v.z > 1) return;
-    const el = document.createElement('div');
-    el.className = 'tlabel'; el.style.left = (v.x * 0.5 + 0.5) * innerWidth + 'px'; el.style.top = (-v.y * 0.5 + 0.5) * innerHeight + 'px';
-    el.style.color = tr.color; el.innerHTML = `<div class="tdot" style="background:${tr.color}"></div><div class="tname">${tr.name}</div>`;
-    el.onclick = () => select(tr);
-    layer.appendChild(el);
-  });
-
-  controls.update();
-  renderer.render(scene, camera);
-  if(frame === 1) document.getElementById('loading').classList.add('done');
-  document.getElementById('diag').textContent = `Engine: r160 | Frame: ${frame}`;
+} catch(e) {
+  document.getElementById('loading').textContent = 'ERROR: ' + e.message;
 }
-animate();
-
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
 </script>
 </body>
 </html>
