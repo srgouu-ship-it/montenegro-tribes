@@ -1,267 +1,426 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vječna Planina — Daily 3D</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,900&family=Inter:wght@300;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #050505;
-            --accent: #C9A227;
-            --text: #F0E5CC;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); }
-        
-        #c { position: fixed; inset: 0; z-index: 1; }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VRH — Daily Peak</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:    #080808;
+      --panel: rgba(8,8,8,0.88);
+      --text:  #e8e0d0;
+      --muted: #484038;
+      --dim:   #282018;
+      --gold:  #C9A227;
+      --red:   #a03020;
+      --blue:  #305880;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'DM Mono',monospace; color:var(--text); }
 
-        #ui {
-            position: fixed; inset: 0; z-index: 10;
-            pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
-            padding: 40px;
-        }
+    canvas { position:fixed; inset:0; z-index:1; }
 
-        header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .title { font-family: 'Playfair Display', serif; font-size: 1.5rem; letter-spacing: 4px; text-transform: uppercase; color: var(--accent); }
-        .date-label { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.6; margin-top: 4px; }
+    /* ── CHROME ─────────────────────── */
+    #chrome {
+      position:fixed; inset:0; z-index:10; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:24px; pointer-events:none;
+    }
 
-        .wisdom-box {
-            max-width: 400px; opacity: 0; transform: translateY(20px);
-            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-            pointer-events: auto; background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px); padding: 30px; border-left: 2px solid var(--accent);
-        }
-        .wisdom-box.show { opacity: 1; transform: translateY(0); }
-        .quote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px; }
-        .author { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+    .topbar {
+      position:fixed; top:0; left:0; right:0; padding:24px 32px;
+      display:flex; align-items:baseline; justify-content:space-between;
+    }
+    .logo { font-size:11px; letter-spacing:8px; opacity:.25; }
+    .day-counter { font-size:10px; letter-spacing:3px; opacity:.2; }
 
-        footer { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.6rem; letter-spacing: 1px; opacity: 0.4; }
+    /* ── CARD ────────────────────────── */
+    .card {
+      width:100%; max-width:400px; background:var(--panel);
+      backdrop-filter:blur(24px); border:1px solid var(--dim); pointer-events:auto;
+    }
 
-        #loading {
-            position: fixed; inset: 0; z-index: 100; background: var(--bg);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s;
-        }
-        .spinner { width: 30px; height: 30px; border: 2px solid rgba(201,162,39,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+    .card-head { padding:32px 32px 24px; border-bottom:1px solid var(--dim); }
+    .card-tag  { font-size:9px; letter-spacing:5px; color:var(--muted); margin-bottom:16px; }
+    .card-name { font-family:'DM Serif Display',serif; font-size:2rem; line-height:1.1; margin-bottom:6px; }
+    .card-region { font-size:9px; letter-spacing:3px; color:var(--muted); }
 
-        #overlay-btn {
-            pointer-events: auto; background: none; border: 1px solid var(--accent); color: var(--accent);
-            padding: 10px 20px; border-radius: 999px; font-size: 0.6rem; cursor: pointer; transition: all 0.3s;
-        }
-        #overlay-btn:hover { background: var(--accent); color: var(--bg); }
-    </style>
+    .card-body { padding:24px 32px 32px; display:flex; flex-direction:column; gap:24px; }
+
+    .hint { font-size:12px; color:var(--muted); font-style:italic; line-height:1.6; }
+
+    /* ── GUESS HISTORY ───────────────── */
+    .history { display:flex; flex-direction:column; gap:6px; min-height:0; }
+    .h-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 12px; border:1px solid var(--dim); font-size:13px;
+    }
+    .h-val { font-size:15px; letter-spacing:1px; }
+    .h-dir { font-size:9px; letter-spacing:3px; }
+    .h-high { color:var(--red); }
+    .h-low  { color:var(--blue); }
+    .h-win  { color:var(--gold); }
+
+    /* ── ATTEMPT DOTS ───────────────── */
+    .dots { display:flex; gap:8px; }
+    .dot { width:6px; height:6px; background:var(--dim); transition:background .3s; }
+    .dot.used { background:var(--muted); }
+    .dot.win  { background:var(--gold); }
+    .dot.loss { background:var(--red); }
+
+    /* ── INPUT ──────────────────────── */
+    .input-row { display:flex; }
+    #guess-input {
+      flex:1; background:transparent; border:1px solid var(--dim); border-right:none;
+      color:var(--text); font-family:'DM Mono',monospace; font-size:20px; font-weight:400;
+      padding:14px 16px; outline:none; -moz-appearance:textfield;
+      transition:border-color .2s;
+    }
+    #guess-input::-webkit-inner-spin-button, #guess-input::-webkit-outer-spin-button { -webkit-appearance:none; }
+    #guess-input:focus { border-color:var(--gold); }
+    #guess-input::placeholder { color:var(--muted); font-size:12px; }
+    #guess-input:disabled { opacity:.3; }
+
+    #guess-btn {
+      background:var(--text); color:var(--bg); border:none; padding:14px 18px;
+      font-family:'DM Mono',monospace; font-size:10px; letter-spacing:3px;
+      cursor:pointer; transition:background .15s; flex-shrink:0;
+    }
+    #guess-btn:hover:not(:disabled) { background:var(--gold); }
+    #guess-btn:disabled { background:var(--dim); color:var(--muted); cursor:not-allowed; }
+
+    /* ── RESULT ──────────────────────── */
+    #result { display:none; flex-direction:column; gap:20px; }
+    #result.show { display:flex; }
+    .r-elev-label { font-size:9px; letter-spacing:4px; color:var(--muted); margin-bottom:8px; }
+    .r-elev { font-family:'DM Serif Display',serif; font-size:3.5rem; color:var(--gold); line-height:1; }
+    .r-sub  { font-size:11px; color:var(--muted); line-height:1.8; }
+
+    #share-btn {
+      background:transparent; border:1px solid var(--dim); color:var(--muted);
+      padding:10px 16px; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px;
+      cursor:pointer; transition:all .2s; width:fit-content;
+    }
+    #share-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+    /* ── TOAST ───────────────────────── */
+    #toast {
+      position:fixed; bottom:32px; left:50%; transform:translateX(-50%);
+      background:var(--gold); color:var(--bg); padding:10px 20px;
+      font-size:10px; letter-spacing:3px; z-index:100;
+      opacity:0; transition:opacity .3s; pointer-events:none;
+    }
+    #toast.show { opacity:1; }
+  </style>
 </head>
 <body>
 
-<div id="loading">
-    <div class="spinner"></div>
-    <div style="letter-spacing: 5px; font-size: 10px;">GENERATING TODAY'S PEAK</div>
-</div>
-
 <canvas id="c"></canvas>
 
-<div id="ui">
-    <header>
-        <div>
-            <div class="title">Vječna Planina</div>
-            <div class="date-label" id="current-date">-- -- ----</div>
-        </div>
-        <button id="overlay-btn">OBSERVE</button>
-    </header>
+<div id="chrome">
+  <div class="topbar">
+    <div class="logo">VRH</div>
+    <div class="day-counter" id="day-num"></div>
+  </div>
 
-    <div class="wisdom-box" id="wisdom">
-        <div class="quote" id="quote-text">"U dobru je lako dobro biti, na muci se poznaju junaci."</div>
-        <div class="author" id="quote-author">Petar II Petrović Njegoš</div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-tag">PEAK OF THE DAY</div>
+      <div class="card-name" id="peak-name"></div>
+      <div class="card-region" id="peak-region"></div>
     </div>
 
-    <footer>
-        <div>INTERACT: DRAG TO ORBIT • SCROLL TO ZOOM</div>
-        <div id="status-tag">STATUS: ETERNAL</div>
-    </footer>
+    <div class="card-body">
+      <div class="hint" id="peak-hint"></div>
+
+      <div class="dots" id="dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+
+      <div class="history" id="history"></div>
+
+      <div id="input-area">
+        <div class="input-row">
+          <input id="guess-input" type="number" placeholder="metres above sea level" min="500" max="5000"/>
+          <button id="guess-btn">GUESS</button>
+        </div>
+      </div>
+
+      <div id="result">
+        <div>
+          <div class="r-elev-label">ACTUAL ELEVATION</div>
+          <div class="r-elev" id="r-elev">—</div>
+        </div>
+        <div class="r-sub" id="r-sub"></div>
+        <button id="share-btn">COPY RESULT ↗</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
+<div id="toast">COPIED</div>
+
 <script type="module">
-    import * as THREE from 'https://esm.sh/three@0.160.0';
-    import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'https://esm.sh/three@0.160.0';
+import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
-    // --- DAILY DATA ---
-    const WISDOM_POOL = [
-        { q: "U dobru je lako dobro biti, na muci se poznaju junaci.", a: "Petar II Petrović Njegoš" },
-        { q: "Tvrd je orah voćka čudnovata, ne polomi ga, al' zube polomi!", a: "Gorski Vijenac" },
-        { q: "Ko na brdo, ak' i malo, stoji više vidi no onaj pod brdom.", a: "P. P. Njegoš" },
-        { q: "Blago tome ko dovijek živi, imao se rašta i roditi.", a: "P. P. Njegoš" },
-        { q: "Čašu meda jošt niko ne popi, što je čašom žuči ne zagrči.", a: "P. P. Njegoš" }
-    ];
+// ── PEAK DATA ─────────────────────────────────────────────────
+const PEAKS = [
+  { name:'Bobotov Kuk',   elev:2523, region:'Durmitor Massif',       hint:'Highest peak of Durmitor. Its silhouette guards the town of Žabljak.' },
+  { name:'Zla Kolata',    elev:2534, region:'Prokletije, Accursed Mts',hint:'True roof of Montenegro. On the Albanian border, rarely visited.' },
+  { name:'Komovi',        elev:2487, region:'Komovi Massif',          hint:'Sacred to the Vasojevići tribe. Three peaks, one rite of passage.' },
+  { name:'Maglić',        elev:2386, region:'Piva Plateau',           hint:'On the Bosnia border, looming above the Tara river canyon.' },
+  { name:'Prutas',        elev:2393, region:'Durmitor Massif',        hint:'Second Durmitor giant. Shares a ridge with Bobotov Kuk.' },
+  { name:'Visitor',       elev:2211, region:'Bjelasica',              hint:'Above Europe\'s last primeval rainforest, Biogradska Gora.' },
+  { name:'Crna Glava',    elev:2139, region:'Bjelasica',              hint:'The "Black Head" — highest summit of the Bjelasica range.' },
+  { name:'Volujak',       elev:2336, region:'Piva Mountains',         hint:'Remote and wild. Rises above the turquoise Piva lake reservoir.' },
+  { name:'Troglav',       elev:2279, region:'Durmitor Massif',        hint:'The "Three-Headed" peak. Requires a serious alpine approach.' },
+  { name:'Sinjajevina',   elev:2037, region:'Sinjajevina Plateau',    hint:'Europe\'s largest mountain pasture. Shepherds here since antiquity.' },
+  { name:'Vojnik',        elev:1963, region:'Bjelasica',              hint:'The "Soldier Peak". Fortress-like summit above ski town Kolašin.' },
+  { name:'Orjen',         elev:1894, region:'Orjen Massif, Bay of Kotor', hint:'Highest peak in the entire Dinaric karst. Visible from the Adriatic.' },
+  { name:'Žijovo',        elev:1873, region:'Žijovo Massif',          hint:'Western sentinel of the Zeta valley, above Danilovgrad.' },
+  { name:'Šljeme',        elev:1879, region:'Lovćen Massif',          hint:'Just below Njegoš\'s mausoleum. Second summit of Lovćen.' },
+  { name:'Lovćen',        elev:1749, region:'Lovćen Massif',          hint:'The Black Mountain — the very namesake of Montenegro.' },
+];
 
-    const today = new Date();
-    const dateStr = today.toDateString();
-    document.getElementById('current-date').textContent = dateStr.toUpperCase();
-    
-    // Simple seed based on date
-    const seed = dateStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const random = () => {
-        let x = Math.sin(seed++) * 10000;
-        return x - Math.floor(x);
-    };
+const WIN_MARGIN = 25; // ±25m counts as correct
 
-    // --- SCENE SETUP ---
-    const canvas = document.getElementById('c');
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+// ── DATE SEED ─────────────────────────────────────────────────
+const now   = new Date();
+const dayNum = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+const dayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+const peak  = PEAKS[dayNum % PEAKS.length];
 
-    const scene = new THREE.Scene();
-    
-    // Theme based on day of week
-    const themes = [
-        { bg: 0x0a0e1a, fog: 0x0a0e1a, mount: 0x1a2a4a, accent: 0x4488ff }, // Sun - deep blue night
-        { bg: 0x150a0a, fog: 0x150a0a, mount: 0x3a1a1a, accent: 0xff5555 }, // Mon - blood red dusk
-        { bg: 0x0a180a, fog: 0x0a180a, mount: 0x1a3a1a, accent: 0x44ff99 }, // Tue - forest emerald
-        { bg: 0x18140a, fog: 0x18140a, mount: 0x3a2a0a, accent: 0xC9A227 }, // Wed - golden dusk
-        { bg: 0x0a1218, fog: 0x0a1218, mount: 0x0a2235, accent: 0x00d4ff }, // Thu - arctic blue
-        { bg: 0x180a14, fog: 0x180a14, mount: 0x350a25, accent: 0xff44cc }, // Fri - magenta night
-        { bg: 0x18100a, fog: 0x18100a, mount: 0x3a2010, accent: 0xff8800 }  // Sat - amber fire
-    ];
-    const theme = themes[today.getDay()];
-    scene.background = new THREE.Color(theme.bg);
-    scene.fog = new THREE.FogExp2(theme.fog, 0.02);
+document.getElementById('day-num').textContent   = `DAY ${(dayNum % 999) + 1}`;
+document.getElementById('peak-name').textContent  = peak.name;
+document.getElementById('peak-region').textContent = peak.region.toUpperCase();
+document.getElementById('peak-hint').textContent  = peak.hint;
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(40, 30, 40);
+// Seeded rng for mountain shape
+let _seed = dayNum;
+const rng = () => { _seed = (_seed * 1664525 + 1013904223) >>> 0; return _seed / 0xffffffff; };
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.5;
-    controls.maxPolarAngle = Math.PI / 2;
+// ── GAME STATE ────────────────────────────────────────────────
+const SKEY = `vrh_${dayKey}`;
+let gs = JSON.parse(localStorage.getItem(SKEY) || 'null') || { guesses:[], done:false, won:false };
+const save = () => localStorage.setItem(SKEY, JSON.stringify(gs));
 
-    // --- LIGHTS ---
-    const ambient = new THREE.AmbientLight(0xffffff, 0.2);
-    scene.add(ambient);
+// Streak
+const STREAK_KEY = 'vrh_streak', STREAK_DATE = 'vrh_streak_date';
+let streak = parseInt(localStorage.getItem(STREAK_KEY) || '0');
+const lastStreakDay = localStorage.getItem(STREAK_DATE);
+// Reset streak if more than 1 day gap
+if (lastStreakDay && dayNum - parseInt(lastStreakDay) > 1) {
+  streak = 0;
+  localStorage.setItem(STREAK_KEY, '0');
+}
 
-    const sun = new THREE.DirectionalLight(0xffffff, 2);
-    sun.position.set(10, 20, 10);
-    scene.add(sun);
-
-    const pointLight = new THREE.PointLight(theme.accent, 5, 50);
-    pointLight.position.set(0, 15, 0);
-    scene.add(pointLight);
-
-    // --- TERRAIN GENERATION ---
-    const geometry = new THREE.PlaneGeometry(60, 60, 64, 64);
-    const pos = geometry.attributes.position;
-
-    // Displacement
-    for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const y = pos.getY(i);
-        const dist = Math.sqrt(x*x + y*y);
-        
-        // Use seed in sine waves for unique daily shape
-        let h = Math.sin(x * 0.1 + seed * 0.1) * Math.cos(y * 0.1 + seed * 0.2) * 5;
-        h += Math.sin(x * 0.3) * Math.sin(y * 0.4) * 2;
-        
-        // Create the peak
-        const peak = Math.max(0, 20 - dist * 0.8);
-        h += peak;
-
-        pos.setZ(i, h);
+function refreshDots() {
+  const dots = document.querySelectorAll('.dot');
+  for (let i = 0; i < 3; i++) {
+    dots[i].className = 'dot';
+    if (i < gs.guesses.length) {
+      const g = gs.guesses[i];
+      dots[i].classList.add(Math.abs(g - peak.elev) <= WIN_MARGIN ? 'win' : gs.done && i === gs.guesses.length - 1 ? 'loss' : 'used');
     }
-    geometry.computeVertexNormals();
+  }
+}
 
-    const material = new THREE.MeshStandardMaterial({
-        color: theme.mount,
-        flatShading: true,
-        roughness: 0.9,
-        metalness: 0.1
-    });
+function refreshHistory() {
+  const box = document.getElementById('history');
+  box.innerHTML = '';
+  gs.guesses.forEach((g, i) => {
+    const diff = g - peak.elev;
+    const win  = Math.abs(diff) <= WIN_MARGIN;
+    const row  = document.createElement('div');
+    row.className = 'h-row';
+    let cls = win ? 'h-win' : diff > 0 ? 'h-high' : 'h-low';
+    let label = win ? '✓  CORRECT' : diff > 0 ? '↓  TOO HIGH' : '↑  TOO LOW';
+    row.innerHTML = `<span class="h-val">${g.toLocaleString()}m</span><span class="h-dir ${cls}">${label}</span>`;
+    box.appendChild(row);
+  });
+}
 
-    const mountain = new THREE.Mesh(geometry, material);
-    mountain.rotation.x = -Math.PI / 2;
-    scene.add(mountain);
+function showResult(won) {
+  document.getElementById('input-area').style.display = 'none';
+  const res = document.getElementById('result');
+  res.classList.add('show');
+  document.getElementById('r-elev').textContent = `${peak.elev.toLocaleString()}m`;
+  const tries = gs.guesses.length;
+  const verb = won ? `SUMMIT REACHED IN ${tries} ${tries === 1 ? 'GUESS' : 'GUESSES'}` : `PEAK UNCONQUERED`;
+  document.getElementById('r-sub').innerHTML = `${verb}\nSTREAK  ${streak} DAY${streak !== 1 ? 'S' : ''}  🔥`;
 
-    // --- TOTEM ---
-    const totemGeo = new THREE.OctahedronGeometry(1.5);
-    const totemMat = new THREE.MeshStandardMaterial({
-        color: theme.accent,
-        emissive: theme.accent,
-        emissiveIntensity: 2,
-        transparent: true,
-        opacity: 0.8
-    });
-    const totem = new THREE.Mesh(totemGeo, totemMat);
-    totem.position.y = 18;
-    scene.add(totem);
+  // Colour the 3D mountain
+  if (mountainMesh) mountainMesh.material.color.set(won ? 0x4a3a10 : 0x2a1010);
+  if (won) spawnParticles();
+}
 
-    // --- INTERACTION ---
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    let wisdomShown = false;
+function guess() {
+  const inp = document.getElementById('guess-input');
+  const val = parseInt(inp.value);
+  if (!val || val < 500 || val > 5000) return;
+  inp.value = '';
 
-    const onSelect = (e) => {
-        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const hits = raycaster.intersectObject(totem);
-        
-        if (hits.length > 0) {
-            const box = document.getElementById('wisdom');
-            const quote = WISDOM_POOL[Math.floor(random() * WISDOM_POOL.length)];
-            document.getElementById('quote-text').textContent = `"${quote.q}"`;
-            document.getElementById('quote-author').textContent = quote.a;
-            box.classList.toggle('show');
-            wisdomShown = !wisdomShown;
-            
-            // Pulse the totem
-            totem.scale.setScalar(1.5);
-        }
-    };
+  gs.guesses.push(val);
+  refreshDots();
+  refreshHistory();
 
-    window.addEventListener('mousedown', onSelect);
-    document.getElementById('overlay-btn').onclick = () => {
-        controls.autoRotate = !controls.autoRotate;
-        document.getElementById('overlay-btn').textContent = controls.autoRotate ? 'OBSERVE' : 'FREE LOOK';
-    };
-
-    // --- ANIMATION LOOP ---
-    let frame = 0;
-    function animate() {
-        requestAnimationFrame(animate);
-        frame++;
-        
-        const time = Date.now() * 0.001;
-        
-        // Floating totem
-        totem.position.y = 18 + Math.sin(time) * 0.5;
-        totem.rotation.y += 0.01;
-        totem.scale.lerp(new THREE.Vector3(1,1,1), 0.1);
-
-        // Rotating point light
-        pointLight.position.x = Math.sin(time * 0.5) * 20;
-        pointLight.position.z = Math.cos(time * 0.5) * 20;
-
-        controls.update();
-        renderer.render(scene, camera);
-
-        if (frame === 10) {
-            document.getElementById('loading').style.opacity = '0';
-            setTimeout(() => document.getElementById('loading').remove(), 1000);
-        }
+  const win = Math.abs(val - peak.elev) <= WIN_MARGIN;
+  if (win || gs.guesses.length >= 3) {
+    gs.done = true;
+    gs.won  = win;
+    save();
+    if (win) {
+      streak++;
+      localStorage.setItem(STREAK_KEY, streak);
+      localStorage.setItem(STREAK_DATE, dayNum);
     }
+    showResult(win);
+  } else {
+    save();
+  }
+}
 
-    animate();
+document.getElementById('guess-btn').onclick = guess;
+document.getElementById('guess-input').addEventListener('keydown', e => { if (e.key === 'Enter') guess(); });
 
-    // Handle Resize
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('share-btn').onclick = () => {
+  const icons = gs.guesses.map(g => Math.abs(g - peak.elev) <= WIN_MARGIN ? '🟨' : g > peak.elev ? '🟥' : '🟦');
+  const result = gs.won ? `${gs.guesses.length}/3` : 'X/3';
+  const text = `VRH  Day ${(dayNum % 999) + 1}\n${peak.name} · ${peak.elev}m\n\n${icons.join('')}  ${result}\n\nsrgouu-ship-it.github.io/montenegro-tribes`;
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  });
+};
+
+// Restore state
+refreshDots();
+refreshHistory();
+if (gs.done) {
+  showResult(gs.won);
+  document.getElementById('guess-input').disabled = true;
+  document.getElementById('guess-btn').disabled = true;
+}
+
+// ── THREE.JS ──────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x080808);
+scene.fog = new THREE.FogExp2(0x080808, 0.022);
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 400);
+camera.position.set(0, 14, 45);
+
+const ctrl = new OrbitControls(camera, renderer.domElement);
+ctrl.enableDamping = true;
+ctrl.enableZoom = false;
+ctrl.autoRotate = true;
+ctrl.autoRotateSpeed = 0.5;
+ctrl.maxPolarAngle = Math.PI / 2.1;
+
+// Lights
+scene.add(new THREE.AmbientLight(0xfff8f0, 0.3));
+const sun = new THREE.DirectionalLight(0xfff0cc, 2.5);
+sun.position.set(12, 30, 8);
+scene.add(sun);
+const fillL = new THREE.DirectionalLight(0x203060, 1.5);
+fillL.position.set(-15, 8, -15);
+scene.add(fillL);
+
+// Mountain (proportional to real elevation)
+const t = (peak.elev - 1700) / (2534 - 1700); // 0–1 range across our peaks
+const peakH = 10 + t * 18;
+const peakR = 13 - t * 4;
+
+const mGeo = new THREE.ConeGeometry(peakR, peakH, 7, 5);
+const mPos = mGeo.attributes.position;
+for (let i = 0; i < mPos.count; i++) {
+  const y = mPos.getY(i);
+  const nY = (y + peakH / 2) / peakH; // 0 base → 1 tip
+  if (nY < 0.95) { // don't jitter the tip
+    mPos.setX(i, mPos.getX(i) + (rng() - 0.5) * 3.5 * (1 - nY));
+    mPos.setZ(i, mPos.getZ(i) + (rng() - 0.5) * 3.5 * (1 - nY));
+  }
+}
+mGeo.computeVertexNormals();
+
+let mountainMesh = new THREE.Mesh(mGeo, new THREE.MeshStandardMaterial({
+  color: 0x181412, flatShading: true, roughness: 0.95, metalness: 0.02
+}));
+mountainMesh.position.y = -peakH / 2 + 1.5;
+scene.add(mountainMesh);
+
+// Snow cap
+const snowH = peakH * 0.22;
+const snowMesh = new THREE.Mesh(
+  new THREE.ConeGeometry(peakR * (snowH / peakH) * 1.15, snowH, 7, 2),
+  new THREE.MeshStandardMaterial({ color: 0xece8e2, flatShading: true, roughness: 1 })
+);
+snowMesh.position.y = mountainMesh.position.y + peakH / 2 - snowH / 2 + 0.1;
+scene.add(snowMesh);
+
+// Ground
+scene.add(Object.assign(new THREE.Mesh(
+  new THREE.PlaneGeometry(140, 140),
+  new THREE.MeshStandardMaterial({ color: 0x0c0a08, roughness: 1 })
+), { rotation: { x: -Math.PI / 2, y: 0, z: 0 }, position: { x: 0, y: mountainMesh.position.y - peakH / 2 + 1.5, z: 0 } }));
+
+// Confetti
+let particles = null;
+function spawnParticles() {
+  const count = 300;
+  const geo   = new THREE.BufferGeometry();
+  const pos   = new Float32Array(count * 3);
+  const vel   = [];
+  const tip   = mountainMesh.position.y + peakH / 2;
+  for (let i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * 2;
+    pos[i*3+1] = tip;
+    pos[i*3+2] = (Math.random() - 0.5) * 2;
+    vel.push([(Math.random()-.5)*.15, Math.random()*.3+.1, (Math.random()-.5)*.15]);
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  particles = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xC9A227, size: 0.25 }));
+  particles._vel = vel;
+  scene.add(particles);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  mountainMesh.rotation.y += 0.0008;
+  snowMesh.rotation.y = mountainMesh.rotation.y;
+
+  if (particles) {
+    const p = particles.geometry.attributes.position;
+    particles._vel.forEach((v, i) => {
+      p.setX(i, p.getX(i) + v[0]);
+      p.setY(i, p.getY(i) + v[1]);
+      p.setZ(i, p.getZ(i) + v[2]);
+      v[1] -= 0.008;
     });
+    p.needsUpdate = true;
+  }
 
+  ctrl.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 </script>
 </body>
 </html>
